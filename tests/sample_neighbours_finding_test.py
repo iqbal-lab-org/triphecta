@@ -16,19 +16,20 @@ data_dir = os.path.join(this_dir, "data", "sample_neighbours_finding")
 @pytest.fixture(scope="function")
 def genos(request):
     genos = genotypes.Genotypes(testing=True)
-    genos.vcf_files = {"s1", "s2", "s3", "s4", "s5"}
+    genos.sample_names_list = ["s1", "s2", "s3", "s4", "s5"]
+    genos._make_sample_name_to_index()
     genos.distances = {
-        ("s1", "s2"): 0,
-        ("s1", "s3"): 3,
-        ("s1", "s4"): 2,
-        ("s1", "s5"): 1,
-        ("s2", "s3"): 1,
-        ("s2", "s4"): 4,
-        ("s2", "s5"): 3,
-        ("s3", "s4"): 5,
-        ("s3", "s5"): 2,
-        ("s4", "s4"): 5,
-        ("s4", "s5"): 1,
+        (0, 1): 0,
+        (0, 2): 3,
+        (0, 3): 2,
+        (0, 4): 1,
+        (1, 2): 1,
+        (1, 3): 4,
+        (1, 4): 3,
+        (2, 3): 5,
+        (2, 4): 2,
+        (3, 3): 5,
+        (3, 4): 1,
     }
     return genos
 

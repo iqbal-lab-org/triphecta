@@ -25,11 +25,17 @@ class Genotypes:
         self.check_vcf_files_exist = check_vcf_files_exist
 
         if testing:
+            self.sample_names_list = []
             self.distances = {}
             self.vcf_variant_counts = {}
             self.vcf_files = {}
         else:
             self.load_all_data()
+
+        self._make_sample_name_to_index()
+
+    def _make_sample_name_to_index(self):
+        self.sample_name_to_index = {name: i for i, name in enumerate(self.sample_names_list)}
 
     def load_all_data(self):
         if self.file_of_vcf_filenames is None:
@@ -48,10 +54,11 @@ class Genotypes:
             )
 
     def distance(self, sample1, sample2):
-        return self.distances[tuple(sorted([sample1, sample2]))]
+        key = tuple(sorted([self.sample_name_to_index[sample1], self.sample_name_to_index[sample2]]))
+        return self.distances[key]
 
     def sample_names(self):
-        for sample in self.vcf_files:
+        for sample in self.sample_names_list:
             yield sample
 
     def distance_dict(self, sample, top_n=None):

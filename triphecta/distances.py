@@ -30,7 +30,7 @@ def distances_between_vcf_files(
     global vcf_data
     sample_names = []
     vcf_files = []
-    for sample_name, vcf_file in filenames.items():
+    for sample_name, vcf_file in sorted(filenames.items()):
         sample_names.append(sample_name)
         vcf_files.append(vcf_file)
 
@@ -46,13 +46,13 @@ def distances_between_vcf_files(
             _dist_two_samples2, itertools.combinations(range(len(vcf_files)), 2)
         )
 
-    variant_counts = {sample_names[i]: x[1] for i, x in enumerate(vcf_data)}
+    variant_counts = [x[1] for x in vcf_data]
     dists = {}
 
     for i, j, dist in distance_list:
-        dists[tuple(sorted([sample_names[i], sample_names[j]]))] = dist
+        dists[tuple(sorted([i, j]))] = dist
 
-    return dists, variant_counts
+    return sample_names, dists, variant_counts
 
 
 def pickle_distances_between_vcf_files(
@@ -65,11 +65,11 @@ def pickle_distances_between_vcf_files(
     vcf_files = utils.load_file_of_vcf_filenames(
         file_of_vcf_filenames, check_vcf_files_exist=False
     )
-    dists, variant_counts = distances_between_vcf_files(
+    sample_names, dists, variant_counts = distances_between_vcf_files(
         vcf_files, threads=1, only_use_pass=True, numeric_filters=None
     )
     with open(pickle_out, "wb") as f:
-        pickle.dump((dists, variant_counts), f)
+        pickle.dump((sample_names, dists, variant_counts), f)
 
 
 def _load_one_sample_distances_file(filename):
@@ -90,13 +90,14 @@ def _load_one_sample_distances_file(filename):
     return distances
 
 
-def _update_distances_for_one_sample(sample_name, new_distances, all_distances):
+def _update_distances_for_one_sample(sample_index, new_distances, all_distances, sample_name_to_index):
     """Updates all distance data in dictionary all_dsitnaces.
     new_distances=list of tuples, made by _load_one_sample_distances_file"""
     for other_sample, distance in new_distances:
-        if other_sample == sample_name:
+        other_index = sample_name_to_index[other_sample]
+        if other_index == sample_index:
             continue
-        key = tuple(sorted([sample_name, other_sample]))
+        key = tuple(sorted([sample_index, other_index]))
         if key in all_distances and all_distances[key] != distance:
             raise RuntimeError(
                 f"Pair of samples seen twice when loading distances, with different distances: {key}"
@@ -105,7 +106,8 @@ def _update_distances_for_one_sample(sample_name, new_distances, all_distances):
 
 
 def _load_sample_distances_file_of_filenames(infile):
-    data = []
+    sample_names = []
+    distance_files = []
     expect_cols = {"sample", "distance_file"}
     with open(infile) as f:
         reader = csv.DictReader(f, delimiter="\t")
@@ -114,38 +116,38 @@ def _load_sample_distances_file_of_filenames(infile):
                 f"Error reading distances file of filenames {infile}. Expected column names: {','.join(expect_cols)}. Got column names: {','.join(reader.fieldnames)}"
             )
         for row in reader:
-            data.append((row["sample"], row["distance_file"]))
+            sample_names.append(row["sample"])
+            distance_files.append(row["distance_file"])
 
-    return data
+    return sample_names, distance_files
 
 
 def load_all_one_sample_distances_files(file_of_filenames, threads=1):
     """Loads data from all per sample distances files.
     filenames = dict of sample name -> distance file name.
     <threads> files in parallel"""
-    names_and_dist_files = _load_sample_distances_file_of_filenames(file_of_filenames)
+    sample_names, distance_files = _load_sample_distances_file_of_filenames(file_of_filenames)
+    sample_name_to_index = {name: i for i, name in enumerate(sample_names)}
     all_distances = {}
     # To reduce memory, load in a batch of files in parallel, then
     # update the distance data in serial.
-    for i in range(0, len(names_and_dist_files), threads):
-        filenames = [x[1] for x in names_and_dist_files[i : i + threads]]
+    for i in range(0, len(sample_names), threads):
+        end_index = i + threads
         with multiprocessing.Pool(processes=threads) as p:
-            dist_data = p.map(_load_one_sample_distances_file, filenames)
+            dist_data = p.map(_load_one_sample_distances_file, distance_files[i:end_index])
 
-        for (sample_name, _), new_distances in zip(
-            names_and_dist_files[i : i + threads], dist_data
-        ):
-            _update_distances_for_one_sample(sample_name, new_distances, all_distances)
+        for sample_index, new_distances in zip(range(i, end_index, 1), dist_data):
+            _update_distances_for_one_sample(sample_index, new_distances, all_distances, sample_name_to_index)
 
-    return all_distances
+    return sample_names, all_distances
 
 
 def pickle_load_all_one_sample_distances_files(
     file_of_filenames, pickle_out, threads=1
 ):
-    dists = load_all_one_sample_distances_files(file_of_filenames)
+    names, dists = load_all_one_sample_distances_files(file_of_filenames)
     with open(pickle_out, "wb") as f:
-        pickle.dump((dists, {}), f)
+        pickle.dump((names, dists, {}), f)
 
 
 def load_from_pickle(pickle_file):

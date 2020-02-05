@@ -8,10 +8,13 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(this_dir, "data", "genotypes")
 
 
+
+
 def test_distance():
     genos = genotypes.Genotypes(testing=True)
-    genos.vcf_files = {"s1", "s2", "s3"}
-    genos.distances = {("s1", "s2"): 0, ("s1", "s3"): 3, ("s2", "s3"): 5}
+    genos.sample_names_list = ["s1", "s2", "s3"]
+    genos._make_sample_name_to_index()
+    genos.distances = {(0, 1): 0, (0, 2): 3, (1, 2): 5}
     assert genos.distance("s1", "s2") == 0
     assert genos.distance("s2", "s1") == 0
     assert genos.distance("s1", "s3") == 3
@@ -22,14 +25,16 @@ def test_distance():
 
 def test_distance_dict():
     genos = genotypes.Genotypes(testing=True)
-    genos.vcf_files = {"s1", "s2", "s3", "s4", "s5", "s6", "s7"}
+    #genos.vcf_files = {"s1", "s2", "s3", "s4", "s5", "s6", "s7"}
+    genos.sample_names_list = ["s1", "s2", "s3", "s4", "s5", "s6", "s7"]
+    genos._make_sample_name_to_index()
     genos.distances = {
-        ("s1", "s2"): 0,
-        ("s1", "s3"): 3,
-        ("s1", "s4"): 3,
-        ("s1", "s5"): 4,
-        ("s1", "s6"): 4,
-        ("s1", "s7"): 5,
+        (0, 1): 0,
+        (0, 2): 3,
+        (0, 3): 3,
+        (0, 4): 4,
+        (0, 5): 4,
+        (0, 6): 5,
     }
     assert genos.distance_dict("s1") == {
         "s2": 0,
