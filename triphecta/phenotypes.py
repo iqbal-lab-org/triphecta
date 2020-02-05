@@ -25,7 +25,6 @@ class Phenotypes:
         self.phenos, self.pheno_types = Phenotypes._load_phenotypes_tsv_file(
             self.input_phenos_tsv
         )
-        print(self.phenos)
         self.pheno_types, self.bool_pheno_types = Phenotypes._get_pheno_types(
             self.phenos
         )
