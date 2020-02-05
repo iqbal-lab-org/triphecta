@@ -1,0 +1,3 @@
+sample	vcf_file	distance_file
+sample1	sample1.vcf	sample1.dist
+sample2	sample2.vcf	sample2.dist
