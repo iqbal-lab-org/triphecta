@@ -72,7 +72,7 @@ def pickle_distances_between_vcf_files(
     logging.info(f"Found {len(vcf_files)} VCF files to load")
     logging.info("Getting genotypes from VCF files")
     sample_names, dists, variant_counts = distances_between_vcf_files(
-        vcf_files, threads=1, only_use_pass=True, numeric_filters=None
+        vcf_files, threads=threads, only_use_pass=True, numeric_filters=None
     )
     logging.info(f"Finished distance calulations. Writing data to file {pickle_out}")
     with open(pickle_out, "wb") as f:
@@ -152,7 +152,7 @@ def load_all_one_sample_distances_files(file_of_filenames, threads=1):
 def pickle_load_all_one_sample_distances_files(
     file_of_filenames, pickle_out, threads=1
 ):
-    names, dists = load_all_one_sample_distances_files(file_of_filenames)
+    names, dists = load_all_one_sample_distances_files(file_of_filenames, threads=threads)
     with open(pickle_out, "wb") as f:
         pickle.dump((names, dists, {}), f)
 
