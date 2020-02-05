@@ -6,6 +6,7 @@ import multiprocessing
 import numpy as np
 
 Variant = collections.namedtuple("Variant", ["CHROM", "POS", "REF", "ALTS"])
+VariantCounts = collections.namedtuple("VariantCounts", ["het", "hom", "null"])
 
 
 def vcf_line_to_variant_and_gt(line):
@@ -130,6 +131,7 @@ def load_vcf_file_for_distance_calc(infile, only_use_pass=True, numeric_filters=
                 data.append(int(genos.pop()) + 1)
 
     logging.debug(f"loaded {infile}")
+    variant_counts = VariantCounts(**variant_counts)
     return np.array(data, dtype=np.uint16), variant_counts
 
 

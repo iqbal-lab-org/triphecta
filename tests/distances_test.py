@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from triphecta import distances
+from triphecta import distances, vcf
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(this_dir, "data", "distances")
@@ -21,9 +21,9 @@ def test_distances_between_vcf_files():
     expect_sample_names = ["s1", "s2", "s3"]
     expect_dists = {(0, 1): 1, (0, 2): 2, (1, 2): 0}
     expect_variant_counts = [
-        {"hom": 3, "het": 1, "null": 1},
-        {"hom": 3, "het": 0, "null": 2},
-        {"hom": 3, "het": 1, "null": 1},
+        vcf.VariantCounts(hom=3, het=1, null=1),
+        vcf.VariantCounts(hom=3, het=0, null=2),
+        vcf.VariantCounts(hom=3, het=1, null=1),
     ]
 
     assert got_sample_names == expect_sample_names
