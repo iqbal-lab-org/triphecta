@@ -1,4 +1,5 @@
 import copy
+import filecmp
 import numpy as np
 import os
 
@@ -133,8 +134,14 @@ def test_load_vcf_files_for_distance_calc():
 
     got = vcf.load_vcf_files_for_distance_calc(filenames, threads=2, only_use_pass=True)
     expect = [
-        (np.array([0, 0, 2, 3, 4], dtype=np.uint16), vcf.VariantCounts(het=1, hom=3, null=1)),
-        (np.array([0, 2, 2, 0, 2], dtype=np.uint16), vcf.VariantCounts(het=0, hom=3, null=2)),
+        (
+            np.array([0, 0, 2, 3, 4], dtype=np.uint16),
+            vcf.VariantCounts(het=1, hom=3, null=1),
+        ),
+        (
+            np.array([0, 2, 2, 0, 2], dtype=np.uint16),
+            vcf.VariantCounts(het=0, hom=3, null=2),
+        ),
     ]
     check_got_equal_expect(got, expect)
 
@@ -142,8 +149,14 @@ def test_load_vcf_files_for_distance_calc():
         filenames, threads=2, only_use_pass=False
     )
     expect = [
-        (np.array([1, 0, 2, 3, 4], dtype=np.uint16), vcf.VariantCounts(het=1, hom=4, null=0)),
-        (np.array([1, 2, 2, 3, 2], dtype=np.uint16), vcf.VariantCounts(het=0, hom=5, null=0)),
+        (
+            np.array([1, 0, 2, 3, 4], dtype=np.uint16),
+            vcf.VariantCounts(het=1, hom=4, null=0),
+        ),
+        (
+            np.array([1, 2, 2, 3, 2], dtype=np.uint16),
+            vcf.VariantCounts(het=0, hom=5, null=0),
+        ),
     ]
     check_got_equal_expect(got, expect)
 
@@ -154,7 +167,43 @@ def test_load_vcf_files_for_distance_calc():
         numeric_filters={"GT_CONF": (True, 12)},
     )
     expect = [
-        (np.array([1, 0, 0, 0, 4], dtype=np.uint16), vcf.VariantCounts(het=1, hom=2, null=2)),
-        (np.array([1, 2, 2, 0, 2], dtype=np.uint16), vcf.VariantCounts(het=0, hom=4, null=1)),
+        (
+            np.array([1, 0, 0, 0, 4], dtype=np.uint16),
+            vcf.VariantCounts(het=1, hom=2, null=2),
+        ),
+        (
+            np.array([1, 2, 2, 0, 2], dtype=np.uint16),
+            vcf.VariantCounts(het=0, hom=4, null=1),
+        ),
     ]
     check_got_equal_expect(got, expect)
+
+
+def test_sample_name_from_vcf():
+    good_file = os.path.join(data_dir, "sample_name_from_vcf.good.vcf")
+    assert vcf.sample_name_from_vcf(good_file) == "sample_42"
+    bad_file = os.path.join(data_dir, "sample_name_from_vcf.bad.vcf")
+    with pytest.raises(RuntimeError):
+        vcf.sample_name_from_vcf(bad_file)
+
+
+def test_sample_names_tsv_from_vcf_file_of_filenames():
+    tmp_fofn = "tmp.test.sample_names_tsv_from_vcf_file_of_filenames.in"
+    tmp_expect = "tmp.test.sample_names_tsv_from_vcf_file_of_filenames.expect"
+    with open(tmp_fofn, "w") as f_fofn, open(tmp_expect, "w") as f_expect:
+        print("sample\tvcf_file", file=f_expect)
+        for i in range(1, 4, 1):
+            filename = os.path.join(
+                data_dir, f"sample_names_tsv_from_vcf_file_of_filenames.{i}.vcf"
+            )
+            print(filename, file=f_fofn)
+            print(f"sample_{i}", os.path.abspath(filename), sep="\t", file=f_expect)
+
+    tmp_out = "tmp.test.sample_names_tsv_from_vcf_file_of_filenames.out"
+    if os.path.exists(tmp_out):
+        os.unlink(tmp_out)
+    vcf.sample_names_tsv_from_vcf_file_of_filenames(tmp_fofn, tmp_out, threads=2)
+    assert filecmp.cmp(tmp_out, tmp_expect, shallow=False)
+    os.unlink(tmp_fofn)
+    os.unlink(tmp_expect)
+    os.unlink(tmp_out)

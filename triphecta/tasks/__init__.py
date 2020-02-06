@@ -1,3 +1,3 @@
-__all__ = ["distances"]
+__all__ = ["distances", "vcfs_to_names"]
 
 from triphecta.tasks import *

@@ -29,6 +29,30 @@ def main(args=None):
 
     subparsers = parser.add_subparsers(title="Available commands", help="", metavar="")
 
+    # ------------------------ vcfs_to_names ----------------------------------
+    subparser_vcfs_to_names = subparsers.add_parser(
+        "vcfs_to_names",
+        help="Get sample names from VCF files",
+        usage="triphecta vcfs_to_names [options] <file_of_vcf_filenames> <out.tsv>",
+        description="Gets sample names from VCF files, makes TSV file for input to triphecta distances vcf",
+    )
+
+    subparser_vcfs_to_names.add_argument(
+        "--threads",
+        type=int,
+        help="Number of VCF files to read in parellel [%(default)s]",
+        default=1,
+        metavar="INT",
+    )
+
+    subparser_vcfs_to_names.add_argument(
+        "file_of_vcf_filenames", help="File of VCF filenames, one name per line"
+    )
+
+    subparser_vcfs_to_names.add_argument("out_tsv", help="Name of output TSV file")
+
+    subparser_vcfs_to_names.set_defaults(func=triphecta.tasks.vcfs_to_names.run)
+
     # ------------------------ distances --------------------------------------
     subparser_distances = subparsers.add_parser(
         "distances",

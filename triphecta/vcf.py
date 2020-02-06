@@ -149,3 +149,37 @@ def load_vcf_files_for_distance_calc(
             ),
             filenames,
         )
+
+
+def sample_name_from_vcf(infile):
+    """Gets sample name from VCF (in its #CHROM... line).
+    Assumes the VCF file only conatins one sample"""
+    logging.debug(f"Getting sample name from VCF file {infile}")
+    with open(infile) as f:
+        for line in f:
+            if line.startswith("#CHROM"):
+                name = line.rstrip().split("\t")[-1]
+                logging.debug(f"Found sample name '{name}' from VCF file {infile}")
+                return name
+
+    raise RuntimeError(f"#CHROM line not found in file {infile}")
+
+
+def sample_names_tsv_from_vcf_file_of_filenames(infile, outfile, threads=1):
+    """Input is a file of VCF file names, one name per line.
+    Writes a TSV file with columns sample_name, vcf_file"""
+    with open(infile) as f:
+        vcf_files = [x.rstrip() for x in f.readlines()]
+
+    logging.debug(
+        f"Getting sample names from {len(vcf_files)} VCF files using {threads} thread(s)"
+    )
+    with multiprocessing.Pool(processes=threads) as p:
+        sample_names = p.map(sample_name_from_vcf, vcf_files)
+
+    assert len(vcf_files) == len(sample_names)
+    logging.debug(f"Writing sample/vcf TSV file {outfile}")
+    with open(outfile, "w") as f:
+        print("sample", "vcf_file", sep="\t", file=f)
+        for sample, vcf_file in zip(sample_names, vcf_files):
+            print(sample, vcf_file, sep="\t", file=f)
