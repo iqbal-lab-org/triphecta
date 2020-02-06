@@ -95,13 +95,63 @@ def _convert_het_to_hom(genos, info_dict, key, cutoff):
     return None
 
 
-def load_vcf_file_for_distance_calc(infile, only_use_pass=True, numeric_filters=None, het_to_hom_key="COV", het_to_hom_min_pc_depth=90.0):
+def _bed_mask_file_to_dict(bed_file):
+    mask = {}
+    with open(bed_file) as f:
+        for line in f:
+            chrom, start, end = line.rstrip().split("\t")
+            if chrom not in mask:
+                mask[chrom] = []
+            mask[chrom].append((int(start), int(end) - 1))
+
+    for l in mask.values():
+        l.sort()
+
+    return mask
+
+
+def vcf_to_variant_positions_to_mask_from_bed_file(vcf_file, bed_file):
+    mask = _bed_mask_file_to_dict(bed_file)
+    current_mask_chrom = None
+    current_mask_index = None
+    vcf_records_to_mask = {}
+    with open(vcf_file) as f:
+        for line in f:
+            if line.startswith('#'):
+                continue
+
+            chrom, pos, _, ref, _ = line.split("\t", maxsplit=4)
+            if chrom not in mask:
+                continue
+
+            if chrom != current_mask_chrom:
+                current_mask_chrom = chrom
+                current_mask_index = 0
+
+            vcf_start = int(pos) - 1
+            vcf_end = vcf_start + len(ref) - 1
+
+            while current_mask_index < len(mask[current_mask_chrom]) and mask[current_mask_chrom][current_mask_index][1] < vcf_start:
+                current_mask_index += 1
+
+            if current_mask_index < len(mask[current_mask_chrom]) and mask[current_mask_chrom][current_mask_index][0] <= vcf_end:
+                if chrom not in vcf_records_to_mask:
+                    vcf_records_to_mask[chrom] = set()
+                vcf_records_to_mask[chrom].add(vcf_start)
+
+    return vcf_records_to_mask
+
+
+def load_vcf_file_for_distance_calc(infile, only_use_pass=True, numeric_filters=None, het_to_hom_key="COV", het_to_hom_min_pc_depth=90.0, mask=None):
     """Loads VCF file, returning a numpy array of genotypes, of type uint16.
     0 means unknown genotype. >0 means the allele number (where 1=ref, 2=first alt,
     etc).
     Format of numeric_filters is {"key": (bool, N)}.
     eg "GT_CONF": (True, 10) would require a minimum GT_CONF of 10 to use the
     called genotype. Otherwise the genotype is zero"""
+    if mask is None:
+        mask = {}
+
     if numeric_filters is None:
         numeric_filters = {}
 
@@ -113,6 +163,10 @@ def load_vcf_file_for_distance_calc(infile, only_use_pass=True, numeric_filters=
             if line.startswith("#"):
                 continue
             fields = line.split("\t")
+
+            if fields[0] in mask and int(fields[1]) - 1 in mask[fields[0]]:
+                continue
+
             if only_use_pass and fields[6] != "PASS":
                 variant_counts["null"] += 1
                 data.append(0)
@@ -156,10 +210,16 @@ def load_vcf_file_for_distance_calc(infile, only_use_pass=True, numeric_filters=
 
 
 def load_vcf_files_for_distance_calc(
-    filenames, threads=1, only_use_pass=True, numeric_filters=None, het_to_hom_key="COV", het_to_hom_min_pc_depth=90.0
+    filenames, threads=1, only_use_pass=True, numeric_filters=None, het_to_hom_key="COV", het_to_hom_min_pc_depth=90.0, mask_bed_file=None
 ):
     if numeric_filters is None:
         numeric_filters = {}
+
+    if mask_bed_file is None:
+        mask = None
+    else:
+        mask = vcf_to_variant_positions_to_mask_from_bed_file(filenames[0], mask_bed_file)
+
     with multiprocessing.Pool(processes=threads) as p:
         return p.map(
             functools.partial(
@@ -168,6 +228,7 @@ def load_vcf_files_for_distance_calc(
                 numeric_filters=numeric_filters,
                 het_to_hom_key=het_to_hom_key,
                 het_to_hom_min_pc_depth=het_to_hom_min_pc_depth,
+                mask=mask,
             ),
             filenames,
         )

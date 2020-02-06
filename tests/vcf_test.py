@@ -106,12 +106,33 @@ def test_convert_het_to_hom():
     assert vcf._convert_het_to_hom(genos, info, "COV", 90.1) is None
 
 
+def test_bed_mask_file_to_dict():
+    infile = os.path.join(data_dir, "bed_mask_file_to_dict.bed")
+    expect = {"chrom1": [(0, 42)], "chrom2": [(20, 29), (100,199)]}
+    assert vcf._bed_mask_file_to_dict(infile) == expect
+
+
+def test_vcf_to_variant_positions_to_mask_from_bed_file():
+    vcf_file = os.path.join(data_dir, "vcf_to_variant_indexes_to_mask_from_bed_file.vcf")
+    bed_file = os.path.join(data_dir, "vcf_to_variant_indexes_to_mask_from_bed_file.bed")
+    expect = {"ref_42": {99}, "ref_43": {49, 50}, "ref_44": {18}}
+    got = vcf.vcf_to_variant_positions_to_mask_from_bed_file(vcf_file, bed_file)
+    assert got == expect
+
+
 def test_load_vcf_file_for_distance_calc():
     infile = os.path.join(data_dir, "load_vcf_file_for_distance_calc.vcf")
     got_genos, got_counts = vcf.load_vcf_file_for_distance_calc(infile)
     expect_genos = np.array([0, 2, 2, 3, 4], dtype=np.uint16)
     np.testing.assert_array_equal(got_genos, expect_genos)
     expect_counts = vcf.VariantCounts(het=0, hom=3, null=1, het_to_hom=1)
+    assert got_counts == expect_counts
+
+    mask = {"ref_42": {10}}
+    got_genos, got_counts = vcf.load_vcf_file_for_distance_calc(infile, mask=mask)
+    expect_genos = np.array([2, 2, 3, 4], dtype=np.uint16)
+    np.testing.assert_array_equal(got_genos, expect_genos)
+    expect_counts = vcf.VariantCounts(het=0, hom=3, null=0, het_to_hom=1)
     assert got_counts == expect_counts
 
     got_genos, got_counts = vcf.load_vcf_file_for_distance_calc(
@@ -129,6 +150,7 @@ def test_load_vcf_file_for_distance_calc():
     np.testing.assert_array_equal(got_genos, expect_genos)
     expect_counts = vcf.VariantCounts(het=1, hom=2, null=2, het_to_hom=0)
     assert got_counts == expect_counts
+
 
 
 def test_load_vcf_files_for_distance_calc():
@@ -177,15 +199,16 @@ def test_load_vcf_files_for_distance_calc():
         only_use_pass=False,
         numeric_filters={"GT_CONF": (True, 12)},
         het_to_hom_key="ignore",
+        mask_bed_file=os.path.join(data_dir, "load_vcf_files_for_distance_calc.mask.bed"),
     )
     expect = [
         (
-            np.array([1, 0, 0, 0, 4], dtype=np.uint16),
-            vcf.VariantCounts(het=1, hom=2, null=2, het_to_hom=0),
+            np.array([0, 0, 0, 4], dtype=np.uint16),
+            vcf.VariantCounts(het=1, hom=1, null=2, het_to_hom=0),
         ),
         (
-            np.array([1, 2, 2, 0, 2], dtype=np.uint16),
-            vcf.VariantCounts(het=0, hom=4, null=1, het_to_hom=0),
+            np.array([2, 2, 0, 2], dtype=np.uint16),
+            vcf.VariantCounts(het=0, hom=3, null=1, het_to_hom=0),
         ),
     ]
     check_got_equal_expect(got, expect)

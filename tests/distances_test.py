@@ -14,9 +14,10 @@ def test_distances_between_vcf_files():
         "s2": os.path.join(data_dir, "distances_between_vcf_files.2.vcf"),
         "s3": os.path.join(data_dir, "distances_between_vcf_files.3.vcf"),
     }
+    mask_bed_file = os.path.join(data_dir, "distances_between_vcf_files.mask.bed")
 
     got_sample_names, got_dists, got_variant_counts = distances.distances_between_vcf_files(
-        filenames, threads=2, het_to_hom_key="ignore"
+        filenames, threads=2, het_to_hom_key="ignore", mask_bed_file=mask_bed_file
     )
     expect_sample_names = ["s1", "s2", "s3"]
     expect_dists = {(0, 1): 1, (0, 2): 2, (1, 2): 0}
@@ -40,7 +41,7 @@ def test_distances_between_vcf_files():
         for sample, filename in filenames.items():
             print(sample, filename, sep="\t", file=f)
     distances.pickle_distances_between_vcf_files(
-        file_of_filenames, pickle_file, threads=2, het_to_hom_key="ignore"
+        file_of_filenames, pickle_file, threads=2, het_to_hom_key="ignore", mask_bed_file=mask_bed_file,
     )
     os.unlink(file_of_filenames)
     got_sample_names, got_dists, got_variant_counts = distances.load_from_pickle(pickle_file)

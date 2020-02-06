@@ -83,6 +83,12 @@ def main(args=None):
     )
 
     subparser_distances.add_argument(
+        "--mask_bed_file",
+        help="BED file of regions to ignore from all VCF files (tab-delimited, 3 columns: ref_name start end, coords 0-based and end coord not included)",
+        metavar="FILENAME",
+    )
+
+    subparser_distances.add_argument(
         "--vcf_ignore_filter_pass",
         action="store_true",
         help="By default, only use VCF records with PASS in the FILTER column, and count all others as a null genotype. Using this flag ignores the filter column, effectively treating every line of the VCF as if it has PASS",

@@ -14,6 +14,7 @@ def run(options):
             numeric_filters=numeric_filters,
             het_to_hom_key=options.het_to_hom_key,
             het_to_hom_min_pc_depth=options.het_to_hom_cutoff,
+            mask_bed_file=options.mask_bed_file,
         )
     else:
         distances.pickle_load_all_one_sample_distances_files(
