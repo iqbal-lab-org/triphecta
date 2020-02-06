@@ -16,14 +16,14 @@ def test_distances_between_vcf_files():
     }
 
     got_sample_names, got_dists, got_variant_counts = distances.distances_between_vcf_files(
-        filenames, threads=2
+        filenames, threads=2, het_to_hom_key="ignore"
     )
     expect_sample_names = ["s1", "s2", "s3"]
     expect_dists = {(0, 1): 1, (0, 2): 2, (1, 2): 0}
     expect_variant_counts = [
-        vcf.VariantCounts(hom=3, het=1, null=1),
-        vcf.VariantCounts(hom=3, het=0, null=2),
-        vcf.VariantCounts(hom=3, het=1, null=1),
+        vcf.VariantCounts(hom=3, het=1, null=1, het_to_hom=0),
+        vcf.VariantCounts(hom=3, het=0, null=2, het_to_hom=0),
+        vcf.VariantCounts(hom=3, het=1, null=1, het_to_hom=0),
     ]
 
     assert got_sample_names == expect_sample_names
@@ -40,7 +40,7 @@ def test_distances_between_vcf_files():
         for sample, filename in filenames.items():
             print(sample, filename, sep="\t", file=f)
     distances.pickle_distances_between_vcf_files(
-        file_of_filenames, pickle_file, threads=2
+        file_of_filenames, pickle_file, threads=2, het_to_hom_key="ignore"
     )
     os.unlink(file_of_filenames)
     got_sample_names, got_dists, got_variant_counts = distances.load_from_pickle(pickle_file)

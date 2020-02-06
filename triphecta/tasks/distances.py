@@ -12,6 +12,8 @@ def run(options):
             threads=options.threads,
             only_use_pass=not options.vcf_ignore_filter_pass,
             numeric_filters=numeric_filters,
+            het_to_hom_key=options.het_to_hom_key,
+            het_to_hom_min_pc_depth=options.het_to_hom_cutoff,
         )
     else:
         distances.pickle_load_all_one_sample_distances_files(

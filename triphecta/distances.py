@@ -25,7 +25,7 @@ def _dist_two_samples2(i, j):
 
 
 def distances_between_vcf_files(
-    filenames, threads=1, only_use_pass=True, numeric_filters=None
+    filenames, threads=1, only_use_pass=True, numeric_filters=None, het_to_hom_key="COV", het_to_hom_min_pc_depth=90.0
 ):
     # filenames = dict of sample -> VCF file
     global vcf_data
@@ -40,6 +40,8 @@ def distances_between_vcf_files(
         threads=threads,
         only_use_pass=only_use_pass,
         numeric_filters=numeric_filters,
+        het_to_hom_key=het_to_hom_key,
+        het_to_hom_min_pc_depth=het_to_hom_min_pc_depth,
     )
 
     logging.info("Finished loading genotypes. Calculating distance matrix")
@@ -64,6 +66,8 @@ def pickle_distances_between_vcf_files(
     threads=1,
     only_use_pass=True,
     numeric_filters=None,
+    het_to_hom_key="COV",
+    het_to_hom_min_pc_depth=90.0,
 ):
     logging.info(f"Start loading file of VCF filenames {file_of_vcf_filenames}")
     vcf_files = utils.load_file_of_vcf_filenames(
@@ -72,12 +76,13 @@ def pickle_distances_between_vcf_files(
     logging.info(f"Found {len(vcf_files)} VCF files to load")
     logging.info("Getting genotypes from VCF files")
     sample_names, dists, variant_counts = distances_between_vcf_files(
-        vcf_files, threads=threads, only_use_pass=True, numeric_filters=None
+        vcf_files, threads=threads, only_use_pass=True, numeric_filters=None, het_to_hom_key=het_to_hom_key, het_to_hom_min_pc_depth=het_to_hom_min_pc_depth
     )
     logging.info(f"Finished distance calulations. Writing data to file {pickle_out}")
     with open(pickle_out, "wb") as f:
         pickle.dump((sample_names, dists, variant_counts), f)
     logging.info(f"Finished writing data to file {pickle_out}")
+
 
 def _load_one_sample_distances_file(filename):
     """Loads a distance file into memory. Returns a list of tuples,

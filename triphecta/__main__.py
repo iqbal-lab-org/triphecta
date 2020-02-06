@@ -40,7 +40,7 @@ def main(args=None):
     subparser_vcfs_to_names.add_argument(
         "--threads",
         type=int,
-        help="Number of VCF files to read in parellel [%(default)s]",
+        help="Number of VCF files to read in parallel [%(default)s]",
         default=1,
         metavar="INT",
     )
@@ -95,6 +95,20 @@ def main(args=None):
         dest="vcf_numeric_filter",
         help="Add a filter to the VCF parsing, of the form tag_name:(min|max):cutoff. eg GT_CONF:min:10 would count the genotype as null where GT_CONF<10. This option can be used more than once to add more filters",
         metavar="STRING",
+    )
+
+    subparser_distances.add_argument(
+        "--het_to_hom_key",
+        help="Using this means trying to convert heterozygous calls to homozygous, instead of ignoring them. Use this option to provide the Key to use for allele depths in VCF. It is expected that the corresponding value should be a comma-separated list of allele depths (eg DP4). See also --het_to_hom_cutoff",
+        metavar="STRING",
+    )
+
+    subparser_distances.add_argument(
+        "--het_to_hom_cutoff",
+        type=float,
+        help="Only used if --het_to_hom_key is used. --het_to_hom_cutoff X means that a heterozygous call is converted to homozygous for the first allele A found satisfying X <= (100 * depth of A) / (total depth). Otherwise, call is still counted as heterozygous. [%(default)s]",
+        default=90.0,
+        metavar="FLOAT",
     )
 
     subparser_distances.set_defaults(func=triphecta.tasks.distances.run)

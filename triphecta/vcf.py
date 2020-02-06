@@ -6,7 +6,7 @@ import multiprocessing
 import numpy as np
 
 Variant = collections.namedtuple("Variant", ["CHROM", "POS", "REF", "ALTS"])
-VariantCounts = collections.namedtuple("VariantCounts", ["het", "hom", "null"])
+VariantCounts = collections.namedtuple("VariantCounts", ["het", "hom", "null", "het_to_hom"])
 
 
 def vcf_line_to_variant_and_gt(line):
@@ -80,7 +80,22 @@ def load_variant_calls_from_vcf_file(infile, expected_variants=None):
     return calls, expected_variants
 
 
-def load_vcf_file_for_distance_calc(infile, only_use_pass=True, numeric_filters=None):
+def _convert_het_to_hom(genos, info_dict, key, cutoff):
+    if key not in info_dict:
+        return None
+
+    allele_depths = [int(x) for x in info_dict[key].split(",")]
+    total_depth = sum(allele_depths)
+    if total_depth == 0:
+        return None
+    for allele in genos:
+        if cutoff <= 100 * allele_depths[int(allele)] / total_depth:
+            return int(allele)
+
+    return None
+
+
+def load_vcf_file_for_distance_calc(infile, only_use_pass=True, numeric_filters=None, het_to_hom_key="COV", het_to_hom_min_pc_depth=90.0):
     """Loads VCF file, returning a numpy array of genotypes, of type uint16.
     0 means unknown genotype. >0 means the allele number (where 1=ref, 2=first alt,
     etc).
@@ -91,7 +106,7 @@ def load_vcf_file_for_distance_calc(infile, only_use_pass=True, numeric_filters=
         numeric_filters = {}
 
     data = []
-    variant_counts = {"hom": 0, "het": 0, "null": 0}
+    variant_counts = {"hom": 0, "het": 0, "null": 0, "het_to_hom": 0}
 
     with open(infile) as f:
         for line in f:
@@ -120,12 +135,17 @@ def load_vcf_file_for_distance_calc(infile, only_use_pass=True, numeric_filters=
                         fail_filter = True
                         break
 
-            if fail_filter or len(genos) > 1 or "." in genos:
+            if fail_filter or "." in genos:
                 data.append(0)
-                if len(genos) > 1:
+                variant_counts["null"] += 1
+            elif len(genos) > 1:
+                hom_allele = _convert_het_to_hom(genos, info, het_to_hom_key, het_to_hom_min_pc_depth)
+                if hom_allele is None:
                     variant_counts["het"] += 1
+                    data.append(0)
                 else:
-                    variant_counts["null"] += 1
+                    variant_counts["het_to_hom"] += 1
+                    data.append(hom_allele + 1)
             else:
                 variant_counts["hom"] += 1
                 data.append(int(genos.pop()) + 1)
@@ -136,7 +156,7 @@ def load_vcf_file_for_distance_calc(infile, only_use_pass=True, numeric_filters=
 
 
 def load_vcf_files_for_distance_calc(
-    filenames, threads=1, only_use_pass=True, numeric_filters=None
+    filenames, threads=1, only_use_pass=True, numeric_filters=None, het_to_hom_key="COV", het_to_hom_min_pc_depth=90.0
 ):
     if numeric_filters is None:
         numeric_filters = {}
@@ -146,6 +166,8 @@ def load_vcf_files_for_distance_calc(
                 load_vcf_file_for_distance_calc,
                 only_use_pass=only_use_pass,
                 numeric_filters=numeric_filters,
+                het_to_hom_key=het_to_hom_key,
+                het_to_hom_min_pc_depth=het_to_hom_min_pc_depth,
             ),
             filenames,
         )
