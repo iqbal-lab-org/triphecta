@@ -25,7 +25,6 @@ def test_distance():
 
 def test_distance_dict():
     genos = genotypes.Genotypes(testing=True)
-    #genos.vcf_files = {"s1", "s2", "s3", "s4", "s5", "s6", "s7"}
     genos.sample_names_list = ["s1", "s2", "s3", "s4", "s5", "s6", "s7"]
     genos._make_sample_name_to_index()
     genos.distances = {
