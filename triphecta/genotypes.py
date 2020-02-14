@@ -27,12 +27,13 @@ class Genotypes:
         if testing:
             self.sample_names_list = []
             self.distances = {}
-            self.vcf_variant_counts = {}
+            self.vcf_variant_counts = []
             self.vcf_files = {}
         else:
             self.load_all_data()
 
         self._make_sample_name_to_index()
+        self.excluded_samples = dict()
 
     def _make_sample_name_to_index(self):
         self.sample_name_to_index = {name: i for i, name in enumerate(self.sample_names_list)}
@@ -78,3 +79,14 @@ class Genotypes:
                     break
 
             return {k: v for k, v in all_distances.items() if v <= max_value}
+
+
+    def update_excluded_samples_using_variant_counts(self, minimum_percent_hom_calls=90.0, count_het_to_hom_as_hom=True):
+        for i, counts in enumerate(self.vcf_variant_counts):
+            total_calls = sum(counts)
+            hom_calls = counts.hom + (counts.het_to_hom if count_het_to_hom_as_hom else 0)
+            if 100 * hom_calls / total_calls < minimum_percent_hom_calls:
+                if i not in self.excluded_samples:
+                    self.excluded_samples[i] = set()
+                self.excluded_samples[i].add("Too few hom calls")
+

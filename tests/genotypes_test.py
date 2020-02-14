@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from triphecta import genotypes
+from triphecta import genotypes, vcf
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(this_dir, "data", "genotypes")
@@ -68,3 +68,24 @@ def test_distance_dict():
         "s6": 4,
         "s7": 5,
     }
+
+
+def test_update_excluded_samples_using_variant_counts():
+    genos = genotypes.Genotypes(testing=True)
+    assert genos.excluded_samples == {}
+    genos.sample_names_list = ["s1", "s2", "s3", "s4"]
+    genos._make_sample_name_to_index()
+    genos.vcf_variant_counts = [
+        vcf.VariantCounts(hom=95, het=5, null=0, het_to_hom=0),
+        vcf.VariantCounts(hom=90, het=10, null=0, het_to_hom=0),
+        vcf.VariantCounts(hom=89, het=11, null=0, het_to_hom=0),
+        vcf.VariantCounts(hom=89, het=10, null=0, het_to_hom=1),
+        vcf.VariantCounts(hom=88, het=10, null=1, het_to_hom=1),
+    ]
+    genos.update_excluded_samples_using_variant_counts()
+    expect = {x: {'Too few hom calls'} for x in [2,4]}
+    assert genos.excluded_samples == expect
+    genos.excluded_samples = {}
+    genos.update_excluded_samples_using_variant_counts(minimum_percent_hom_calls=95)
+    expect = {x: {'Too few hom calls'} for x in [1,2,3,4]}
+    assert genos.excluded_samples == expect
