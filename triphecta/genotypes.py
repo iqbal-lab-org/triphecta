@@ -66,7 +66,7 @@ class Genotypes:
         all_distances = {
             other: self.distance(sample, other)
             for other in self.sample_names()
-            if sample != other
+            if sample != other and other not in self.excluded_samples
         }
         if top_n is None:
             return all_distances

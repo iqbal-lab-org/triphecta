@@ -69,6 +69,10 @@ def test_distance_dict():
         "s7": 5,
     }
 
+    genos.excluded_samples = {"s2": "reason"}
+    assert genos.distance_dict("s1", top_n=1) == {"s3": 3, "s4": 3}
+
+
 
 def test_update_excluded_samples_using_variant_counts():
     genos = genotypes.Genotypes(testing=True)
