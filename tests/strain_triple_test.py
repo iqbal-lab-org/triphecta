@@ -114,3 +114,22 @@ def test_load_variants_from_vcf_files():
     assert triple.variants == expect_variants
     expect_variant_calls = {"case": [0, 1], "control1": [0, 2], "control2": [0, 2]}
     assert triple.variant_calls == expect_variant_calls
+
+
+def test_update_variants_of_interest():
+    triple = strain_triple.StrainTriple("case", "control1", "control2")
+    triple.variants = [
+        vcf.Variant(CHROM="ref_42", POS=9, REF="A", ALTS=["C"]),
+        vcf.Variant(CHROM="ref_42", POS=10, REF="A", ALTS=["C,G"]),
+        vcf.Variant(CHROM="ref_42", POS=11, REF="C", ALTS=["A,G"]),
+        vcf.Variant(CHROM="ref_42", POS=12, REF="G", ALTS=["T"]),
+        vcf.Variant(CHROM="ref_42", POS=13, REF="T", ALTS=["A"]),
+    ]
+    triple.variant_calls = {
+        "case": [0, 0, ".", 0, 0],
+        "control1": [1, ".", 1, 0, 1],
+        "control2": [".", 1, 1, 1, 1],
+    }
+    assert triple.variant_indexes_of_interest == set()
+    triple.update_variants_of_interest()
+    assert triple.variant_indexes_of_interest == {4}

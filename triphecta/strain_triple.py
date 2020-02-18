@@ -10,6 +10,7 @@ class StrainTriple:
         self.control2 = control2
         self.variant_calls = {"case": None, "control1": None, "control2": None}
         self.variants = None
+        self.variant_indexes_of_interest = set()
 
     def __eq__(self, other):
         return type(other) is type(self) and self.__dict__ == other.__dict__
@@ -27,6 +28,25 @@ class StrainTriple:
         self.variant_calls["control2"], _ = vcf.load_variant_calls_from_vcf_file(
             control2_vcf, expected_variants=self.variants
         )
+
+    def update_variants_of_interest(self):
+        self.variant_indexes_of_interest = set()
+
+        for i, variant in enumerate(self.variants):
+            # We are interested in where the two controls have the same
+            # genotype call, and the case genotype call is different.
+            # We can't say anything about null calls, so skip those.
+            if (
+                self.variant_calls["case"][i] == "."
+                or self.variant_calls["control1"][i] == "."
+                or self.variant_calls["control2"][i] == "."
+                or self.variant_calls["control1"][i]
+                != self.variant_calls["control2"][i]
+                or self.variant_calls["case"] == self.variant_calls["control1"]
+            ):
+                continue
+
+            self.variant_indexes_of_interest.add(i)
 
 
 def find_strain_triples(
