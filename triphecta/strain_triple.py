@@ -1,6 +1,6 @@
 import logging
 
-from triphecta import phenotypes, sample_neighbours_finding
+from triphecta import phenotypes, sample_neighbours_finding, vcf
 
 
 class StrainTriple:
@@ -8,9 +8,25 @@ class StrainTriple:
         self.case = case
         self.control1 = control1
         self.control2 = control2
+        self.variant_calls = {"case": None, "control1": None, "control2": None}
+        self.variants = None
 
     def __eq__(self, other):
         return type(other) is type(self) and self.__dict__ == other.__dict__
+
+    def load_variants_from_vcf_files(self, case_vcf, control1_vcf, control2_vcf):
+        logging.info(f"Loading VCF file {case_vcf}")
+        self.variant_calls[
+            "case"
+        ], self.variants = vcf.load_variant_calls_from_vcf_file(case_vcf)
+        logging.info(f"Loading VCF file {control1_vcf}")
+        self.variant_calls["control1"], _ = vcf.load_variant_calls_from_vcf_file(
+            control1_vcf, expected_variants=self.variants
+        )
+        logging.info(f"Loading VCF file {control2_vcf}")
+        self.variant_calls["control2"], _ = vcf.load_variant_calls_from_vcf_file(
+            control2_vcf, expected_variants=self.variants
+        )
 
 
 def find_strain_triples(

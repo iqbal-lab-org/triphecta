@@ -8,7 +8,11 @@ from triphecta import (
     phenotype_compare,
     sample_neighbours_finding,
     strain_triple,
+    vcf,
 )
+
+this_dir = os.path.dirname(os.path.abspath(__file__))
+data_dir = os.path.join(this_dir, "data", "strain_triple")
 
 
 @pytest.fixture(scope="function")
@@ -95,3 +99,18 @@ def test_find_strain_triples(genos, phenos, constraints, caplog):
         strain_triple.StrainTriple("s2", rank_data_s2_1, rank_data_s2_2),
     ]
     assert got == expect
+
+
+def test_load_variants_from_vcf_files():
+    triple = strain_triple.StrainTriple("case", "control1", "control2")
+    case_vcf = os.path.join(data_dir, "load_variants_from_vcf_files.case.vcf")
+    control1_vcf = os.path.join(data_dir, "load_variants_from_vcf_files.control1.vcf")
+    control2_vcf = os.path.join(data_dir, "load_variants_from_vcf_files.control2.vcf")
+    triple.load_variants_from_vcf_files(case_vcf, control1_vcf, control2_vcf)
+    expect_variants = [
+        vcf.Variant(CHROM="ref_42", POS=10, REF="C", ALTS=["G"]),
+        vcf.Variant(CHROM="ref_43", POS=41, REF="T", ALTS=["A", "CT"]),
+    ]
+    assert triple.variants == expect_variants
+    expect_variant_calls = {"case": [0, 1], "control1": [0, 2], "control2": [0, 2]}
+    assert triple.variant_calls == expect_variant_calls
