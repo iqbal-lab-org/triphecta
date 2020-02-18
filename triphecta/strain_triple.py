@@ -15,11 +15,16 @@ class StrainTriple:
     def __eq__(self, other):
         return type(other) is type(self) and self.__dict__ == other.__dict__
 
+    def set_variants(self, variants):
+        self.variants = variants
+
     def load_variants_from_vcf_files(self, case_vcf, control1_vcf, control2_vcf):
         logging.info(f"Loading VCF file {case_vcf}")
         self.variant_calls[
             "case"
-        ], self.variants = vcf.load_variant_calls_from_vcf_file(case_vcf)
+        ], self.variants = vcf.load_variant_calls_from_vcf_file(
+            case_vcf, expected_variants=self.variants
+        )
         logging.info(f"Loading VCF file {control1_vcf}")
         self.variant_calls["control1"], _ = vcf.load_variant_calls_from_vcf_file(
             control1_vcf, expected_variants=self.variants

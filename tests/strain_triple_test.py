@@ -115,6 +115,12 @@ def test_load_variants_from_vcf_files():
     expect_variant_calls = {"case": [0, 1], "control1": [0, 2], "control2": [0, 2]}
     assert triple.variant_calls == expect_variant_calls
 
+    triple = strain_triple.StrainTriple("case", "control1", "control2")
+    triple.set_variants(expect_variants)
+    triple.load_variants_from_vcf_files(case_vcf, control1_vcf, control2_vcf)
+    assert triple.variants == expect_variants
+    assert triple.variant_calls == expect_variant_calls
+
 
 def test_update_variants_of_interest():
     triple = strain_triple.StrainTriple("case", "control1", "control2")
