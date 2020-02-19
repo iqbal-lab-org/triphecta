@@ -13,6 +13,7 @@ __all__ = [
     "phenotype_compare",
     "sample_neighbours_finding",
     "strain_triple",
+    "strain_triples",
     "tasks",
     "triphenotops",
     "utils",
