@@ -34,6 +34,20 @@ class StrainTriple:
             control2_vcf, expected_variants=self.variants
         )
 
+    @classmethod
+    def genotypes_are_of_interest(cls, case, control1, control2):
+        return (
+            "." not in case
+            and "." not in control1
+            and "." not in control2
+            and len(control1.intersection(control2)) > 0
+            and (
+                len(case.intersection(control1))
+                == 0
+                == len(case.intersection(control2))
+            )
+        )
+
     def update_variants_of_interest(self):
         self.variant_indexes_of_interest = set()
 

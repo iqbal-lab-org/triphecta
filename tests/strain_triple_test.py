@@ -29,6 +29,29 @@ def test_load_variants_from_vcf_files():
     assert triple.variant_calls == expect_variant_calls
 
 
+def test_genotypes_are_of_interest():
+    f = strain_triple.StrainTriple.genotypes_are_of_interest
+    assert not f({"."}, {"."}, {"."})
+    assert not f({0}, {1}, {"."})
+    assert not f({0}, {"."}, {1})
+    assert f({0}, {1}, {1})
+    assert f({1}, {0}, {0})
+    assert not f({0, 1}, {2, 3}, {4, 5})
+    assert not f({0, 1}, {2}, {3})
+    assert f({0, 1}, {2}, {2})
+    assert f({0, 1}, {2}, {2, 3})
+    assert f({1}, {2}, {2, 3})
+    assert not f({1}, {2}, {1, 2})
+    assert f({1}, {2, 3}, {3, 4})
+    assert f({0, 1}, {2, 3}, {3, 4})
+    assert not f({0, 2}, {2, 3}, {3, 4})
+    assert not f({0, 3}, {2, 3}, {3, 4})
+    assert not f({0, 4}, {2, 3}, {3, 4})
+    assert not f({0, 1}, {0, 1}, {0, 1})
+    assert f({0}, {3, 4}, {3, 4})
+    assert f({0, 1}, {3, 4}, {3, 4})
+
+
 def test_update_variants_of_interest():
     triple = strain_triple.StrainTriple("case", "control1", "control2")
     triple.variants = [
