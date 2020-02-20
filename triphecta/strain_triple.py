@@ -37,9 +37,9 @@ class StrainTriple:
     @classmethod
     def genotypes_are_of_interest(cls, case, control1, control2):
         return (
-            "." not in case
-            and "." not in control1
-            and "." not in control2
+            case is not None
+            and control1 is not None
+            and control2 is not None
             and len(control1.intersection(control2)) > 0
             and (
                 len(case.intersection(control1))

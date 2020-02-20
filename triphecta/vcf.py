@@ -6,7 +6,9 @@ import multiprocessing
 import numpy as np
 
 Variant = collections.namedtuple("Variant", ["CHROM", "POS", "REF", "ALTS"])
-VariantCounts = collections.namedtuple("VariantCounts", ["het", "hom", "null", "het_to_hom"])
+VariantCounts = collections.namedtuple(
+    "VariantCounts", ["het", "hom", "null", "het_to_hom"]
+)
 
 
 def vcf_line_to_variant_and_gt(line):
@@ -27,13 +29,14 @@ def vcf_line_to_variant_and_gt(line):
             raise RuntimeError(
                 f"Need GT to be first key in FORMAT column at line:\n{line}"
             )
-        gt = set(format_values.split(":")[0].split("/"))
-        if len(gt) > 1:
-            gt = "."
+
+        gt = format_values.split(":")[0]
+        if "." in gt:
+            gt = None
         else:
-            gt = int(gt.pop())
+            gt = {int(x) for x in gt.split("/")}
     else:
-        gt = "."
+        gt = None
 
     return gt, variant
 
@@ -117,7 +120,7 @@ def vcf_to_variant_positions_to_mask_from_bed_file(vcf_file, bed_file):
     vcf_records_to_mask = {}
     with open(vcf_file) as f:
         for line in f:
-            if line.startswith('#'):
+            if line.startswith("#"):
                 continue
 
             chrom, pos, _, ref, _ = line.split("\t", maxsplit=4)
@@ -131,10 +134,16 @@ def vcf_to_variant_positions_to_mask_from_bed_file(vcf_file, bed_file):
             vcf_start = int(pos) - 1
             vcf_end = vcf_start + len(ref) - 1
 
-            while current_mask_index < len(mask[current_mask_chrom]) and mask[current_mask_chrom][current_mask_index][1] < vcf_start:
+            while (
+                current_mask_index < len(mask[current_mask_chrom])
+                and mask[current_mask_chrom][current_mask_index][1] < vcf_start
+            ):
                 current_mask_index += 1
 
-            if current_mask_index < len(mask[current_mask_chrom]) and mask[current_mask_chrom][current_mask_index][0] <= vcf_end:
+            if (
+                current_mask_index < len(mask[current_mask_chrom])
+                and mask[current_mask_chrom][current_mask_index][0] <= vcf_end
+            ):
                 if chrom not in vcf_records_to_mask:
                     vcf_records_to_mask[chrom] = set()
                 vcf_records_to_mask[chrom].add(vcf_start)
@@ -142,7 +151,14 @@ def vcf_to_variant_positions_to_mask_from_bed_file(vcf_file, bed_file):
     return vcf_records_to_mask
 
 
-def load_vcf_file_for_distance_calc(infile, only_use_pass=True, numeric_filters=None, het_to_hom_key="COV", het_to_hom_min_pc_depth=90.0, mask=None):
+def load_vcf_file_for_distance_calc(
+    infile,
+    only_use_pass=True,
+    numeric_filters=None,
+    het_to_hom_key="COV",
+    het_to_hom_min_pc_depth=90.0,
+    mask=None,
+):
     """Loads VCF file, returning a numpy array of genotypes, of type uint16.
     0 means unknown genotype. >0 means the allele number (where 1=ref, 2=first alt,
     etc).
@@ -193,7 +209,9 @@ def load_vcf_file_for_distance_calc(infile, only_use_pass=True, numeric_filters=
                 data.append(0)
                 variant_counts["null"] += 1
             elif len(genos) > 1:
-                hom_allele = _convert_het_to_hom(genos, info, het_to_hom_key, het_to_hom_min_pc_depth)
+                hom_allele = _convert_het_to_hom(
+                    genos, info, het_to_hom_key, het_to_hom_min_pc_depth
+                )
                 if hom_allele is None:
                     variant_counts["het"] += 1
                     data.append(0)
@@ -210,7 +228,13 @@ def load_vcf_file_for_distance_calc(infile, only_use_pass=True, numeric_filters=
 
 
 def load_vcf_files_for_distance_calc(
-    filenames, threads=1, only_use_pass=True, numeric_filters=None, het_to_hom_key="COV", het_to_hom_min_pc_depth=90.0, mask_bed_file=None
+    filenames,
+    threads=1,
+    only_use_pass=True,
+    numeric_filters=None,
+    het_to_hom_key="COV",
+    het_to_hom_min_pc_depth=90.0,
+    mask_bed_file=None,
 ):
     if numeric_filters is None:
         numeric_filters = {}
@@ -218,7 +242,9 @@ def load_vcf_files_for_distance_calc(
     if mask_bed_file is None:
         mask = None
     else:
-        mask = vcf_to_variant_positions_to_mask_from_bed_file(filenames[0], mask_bed_file)
+        mask = vcf_to_variant_positions_to_mask_from_bed_file(
+            filenames[0], mask_bed_file
+        )
 
     with multiprocessing.Pool(processes=threads) as p:
         return p.map(

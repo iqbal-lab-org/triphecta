@@ -31,9 +31,9 @@ def test_load_variants_from_vcf_files():
 
 def test_genotypes_are_of_interest():
     f = strain_triple.StrainTriple.genotypes_are_of_interest
-    assert not f({"."}, {"."}, {"."})
-    assert not f({0}, {1}, {"."})
-    assert not f({0}, {"."}, {1})
+    assert not f(None, None, None)
+    assert not f({0}, {1}, None)
+    assert not f({0}, None, {1})
     assert f({0}, {1}, {1})
     assert f({1}, {0}, {0})
     assert not f({0, 1}, {2, 3}, {4, 5})
