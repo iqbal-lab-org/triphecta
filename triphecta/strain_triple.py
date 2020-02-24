@@ -55,9 +55,12 @@ class StrainTriple:
         self.variant_indexes_of_interest = set()
 
         for i, variant in enumerate(self.variants):
-            if StrainTriple.genotypes_are_of_interest(self.variant_calls["case"][i], self.variant_calls["control1"][i], self.variant_calls["control2"][i]):
+            if StrainTriple.genotypes_are_of_interest(
+                self.variant_calls["case"][i],
+                self.variant_calls["control1"][i],
+                self.variant_calls["control2"][i],
+            ):
                 self.variant_indexes_of_interest.add(i)
-
 
     @classmethod
     def genotype_to_string(cls, geno):
@@ -69,20 +72,46 @@ class StrainTriple:
         else:
             return "/".join(sorted([str(x) for x in geno]))
 
-
     def write_variants_of_interest_file(self, filename, vcf_records_to_mask=None):
         with open(filename, "w") as f:
-            print("variant_id", "in_mask", "chrom", "pos", "ref", "alt", "case", "control1", "control2", sep="\t", file=f)
+            print(
+                "variant_id",
+                "in_mask",
+                "chrom",
+                "pos",
+                "ref",
+                "alt",
+                "case",
+                "control1",
+                "control2",
+                sep="\t",
+                file=f,
+            )
             for i, variant in enumerate(self.variants):
                 if i in self.variant_indexes_of_interest:
-                    if vcf_records_to_mask is not None and variant.CHROM in vcf_records_to_mask and variant.POS in vcf_records_to_mask[variant.CHROM]:
+                    if (
+                        vcf_records_to_mask is not None
+                        and variant.CHROM in vcf_records_to_mask
+                        and variant.POS in vcf_records_to_mask[variant.CHROM]
+                    ):
                         in_mask = 1
                     else:
                         in_mask = 0
 
-                    print(i+1, in_mask,
-                            variant.CHROM, variant.POS + 1, variant.REF, ",".join(variant.ALTS),
-                            StrainTriple.genotype_to_string(self.variant_calls["case"][i]),
-                            StrainTriple.genotype_to_string(self.variant_calls["control1"][i]),
-                            StrainTriple.genotype_to_string(self.variant_calls["control2"][i]),
-                            sep="\t", file=f)
+                    print(
+                        i + 1,
+                        in_mask,
+                        variant.CHROM,
+                        variant.POS + 1,
+                        variant.REF,
+                        ",".join(variant.ALTS),
+                        StrainTriple.genotype_to_string(self.variant_calls["case"][i]),
+                        StrainTriple.genotype_to_string(
+                            self.variant_calls["control1"][i]
+                        ),
+                        StrainTriple.genotype_to_string(
+                            self.variant_calls["control2"][i]
+                        ),
+                        sep="\t",
+                        file=f,
+                    )

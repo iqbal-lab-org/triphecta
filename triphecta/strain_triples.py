@@ -62,4 +62,3 @@ class StrainTriples:
             self.triples.append(
                 strain_triple.StrainTriple(sample_name, neighbours[0], neighbours[1])
             )
-

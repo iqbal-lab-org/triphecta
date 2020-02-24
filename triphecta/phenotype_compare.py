@@ -71,7 +71,6 @@ class PhenotypeCompare:
         else:
             return compare_function(p1, p2, **kwargs)
 
-
     def phenos_agree_on_one_feature(self, pheno1, pheno2, key):
         return PhenotypeCompare._phenos_equal_account_for_none(
             pheno1[key],
@@ -81,13 +80,11 @@ class PhenotypeCompare:
             **self.constraints[key]["params"],
         )
 
-
     def phenos_agree_on_features(self, pheno1, pheno2, keys):
         for key in keys:
             if not self.phenos_agree_on_one_feature(pheno1, pheno2, key):
                 return False
         return True
-
 
     def differences(self, pheno1, pheno2):
         """Returns number of differences between the two phenotypes.

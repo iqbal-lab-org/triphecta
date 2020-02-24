@@ -20,7 +20,11 @@ def test_load_variants_from_vcf_files():
         vcf.Variant(CHROM="ref_43", POS=41, REF="T", ALTS=["A", "CT"]),
     ]
     assert triple.variants == expect_variants
-    expect_variant_calls = {"case": [{0}, {1}], "control1": [{0}, {2}], "control2": [{0}, {2}]}
+    expect_variant_calls = {
+        "case": [{0}, {1}],
+        "control1": [{0}, {2}],
+        "control2": [{0}, {2}],
+    }
     assert triple.variant_calls == expect_variant_calls
 
     triple = strain_triple.StrainTriple("case", "control1", "control2")
@@ -30,7 +34,6 @@ def test_load_variants_from_vcf_files():
     assert triple.variant_calls == expect_variant_calls
     triple.clear_variant_calls()
     assert triple.variant_calls == {"case": None, "control1": None, "control2": None}
-
 
 
 def test_genotypes_are_of_interest():
@@ -97,7 +100,7 @@ def test_write_variants_of_interest_file():
         "control1": [{1}, None, {1}, {0}, {1}, {2}],
         "control2": [None, {1}, {1}, {1}, {1}, {2}],
     }
-    triple.variant_indexes_of_interest = {4,5}
+    triple.variant_indexes_of_interest = {4, 5}
 
     outfile = "tmp.out.write_variants_of_interest_file.tsv"
     if os.path.exists(outfile):
@@ -111,4 +114,3 @@ def test_write_variants_of_interest_file():
     expect = os.path.join(data_dir, "write_variants_of_interest_file.masked.tsv")
     assert filecmp.cmp(expect, outfile, shallow=False)
     os.unlink(outfile)
-
