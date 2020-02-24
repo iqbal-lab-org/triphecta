@@ -52,17 +52,6 @@ class StrainTriple:
         self.variant_indexes_of_interest = set()
 
         for i, variant in enumerate(self.variants):
-            # We are interested in where the two controls have the same
-            # genotype call, and the case genotype call is different.
-            # We can't say anything about null calls, so skip those.
-            if (
-                self.variant_calls["case"][i] == "."
-                or self.variant_calls["control1"][i] == "."
-                or self.variant_calls["control2"][i] == "."
-                or self.variant_calls["control1"][i]
-                != self.variant_calls["control2"][i]
-                or self.variant_calls["case"] == self.variant_calls["control1"]
-            ):
-                continue
+            if StrainTriple.genotypes_are_of_interest(self.variant_calls["case"][i], self.variant_calls["control1"][i], self.variant_calls["control2"][i]):
+                self.variant_indexes_of_interest.add(i)
 
-            self.variant_indexes_of_interest.add(i)

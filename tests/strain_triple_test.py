@@ -62,9 +62,9 @@ def test_update_variants_of_interest():
         vcf.Variant(CHROM="ref_42", POS=13, REF="T", ALTS=["A"]),
     ]
     triple.variant_calls = {
-        "case": [0, 0, ".", 0, 0],
-        "control1": [1, ".", 1, 0, 1],
-        "control2": [".", 1, 1, 1, 1],
+        "case": [{0}, {0}, None, {0}, {0}],
+        "control1": [{1}, None, {1}, {0}, {1}],
+        "control2": [None, {1}, {1}, {1}, {1}],
     }
     assert triple.variant_indexes_of_interest == set()
     triple.update_variants_of_interest()
