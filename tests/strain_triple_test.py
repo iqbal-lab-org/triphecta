@@ -28,6 +28,9 @@ def test_load_variants_from_vcf_files():
     triple.load_variants_from_vcf_files(case_vcf, control1_vcf, control2_vcf)
     assert triple.variants == expect_variants
     assert triple.variant_calls == expect_variant_calls
+    triple.clear_variant_calls()
+    assert triple.variant_calls == {"case": None, "control1": None, "control2": None}
+
 
 
 def test_genotypes_are_of_interest():

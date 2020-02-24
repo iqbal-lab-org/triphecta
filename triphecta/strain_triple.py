@@ -34,6 +34,9 @@ class StrainTriple:
             control2_vcf, expected_variants=self.variants
         )
 
+    def clear_variant_calls(self):
+        self.variant_calls = {"case": None, "control1": None, "control2": None}
+
     @classmethod
     def genotypes_are_of_interest(cls, case, control1, control2):
         return (
