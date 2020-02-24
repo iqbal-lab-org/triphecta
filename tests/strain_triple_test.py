@@ -19,7 +19,7 @@ def test_load_variants_from_vcf_files():
         vcf.Variant(CHROM="ref_43", POS=41, REF="T", ALTS=["A", "CT"]),
     ]
     assert triple.variants == expect_variants
-    expect_variant_calls = {"case": [0, 1], "control1": [0, 2], "control2": [0, 2]}
+    expect_variant_calls = {"case": [{0}, {1}], "control1": [{0}, {2}], "control2": [{0}, {2}]}
     assert triple.variant_calls == expect_variant_calls
 
     triple = strain_triple.StrainTriple("case", "control1", "control2")
