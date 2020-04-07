@@ -1,6 +1,5 @@
 import logging
 import os
-import subprocess
 
 from triphecta import phenotypes, sample_neighbours_finding, strain_triple, vcf
 
