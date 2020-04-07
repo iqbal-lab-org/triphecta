@@ -37,7 +37,7 @@ def _geno_and_pheno_distances_for_one_sample(
     return geno_distances, pheno_distances
 
 
-def _geno_and_pheno_distances_to_rank_table(geno_distances, pheno_distances):
+def _geno_and_pheno_distances_to_rank_table(geno_distances, pheno_distances, max_pheno_dist=None):
     geno_ranks = _dict_to_value_ranks(geno_distances)
     pheno_ranks = _dict_to_value_ranks(pheno_distances)
     rank_table = []
@@ -45,6 +45,8 @@ def _geno_and_pheno_distances_to_rank_table(geno_distances, pheno_distances):
     for s in geno_distances:
         geno_dist = geno_distances[s]
         pheno_dist = pheno_distances[s]
+        if max_pheno_dist is not None and pheno_dist > max_pheno_dist:
+            continue
         geno_rank = geno_ranks[geno_dist]
         pheno_rank = pheno_ranks[pheno_dist]
 
@@ -64,9 +66,9 @@ def _geno_and_pheno_distances_to_rank_table(geno_distances, pheno_distances):
 
 
 def ranked_neighbours_for_one_sample(
-    genos, phenos, pheno_compare, sample, top_n_genos=None
+    genos, phenos, pheno_compare, sample, top_n_genos=None, max_pheno_dist=None
 ):
     geno_dist, pheno_dist = _geno_and_pheno_distances_for_one_sample(
         genos, phenos, pheno_compare, sample, top_n_genos=top_n_genos
     )
-    return _geno_and_pheno_distances_to_rank_table(geno_dist, pheno_dist)
+    return _geno_and_pheno_distances_to_rank_table(geno_dist, pheno_dist, max_pheno_dist=max_pheno_dist)

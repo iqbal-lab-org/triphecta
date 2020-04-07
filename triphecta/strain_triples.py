@@ -9,9 +9,7 @@ class StrainTriples:
         self.genos = genos
         self.phenos = phenos
         self.pheno_compare = pheno_compare
-        self.max_pheno_diffs = (
-            max_pheno_diffs
-        )  # TODO needs implementing when finding triples
+        self.max_pheno_diffs = max_pheno_diffs
         self.top_n_genos = top_n_genos
         self.triples = []
 
@@ -47,6 +45,7 @@ class StrainTriples:
                 self.pheno_compare,
                 sample_name,
                 top_n_genos=self.top_n_genos,
+                max_pheno_dist=self.max_pheno_diffs,
             )
 
             if len(neighbours) < 2:
