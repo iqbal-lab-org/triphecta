@@ -62,3 +62,13 @@ class StrainTriples:
             self.triples.append(
                 strain_triple.StrainTriple(sample_name, neighbours[0], neighbours[1])
             )
+
+
+    @classmethod
+    def _write_triples_names_file(cls, triples, outfile):
+        with open(outfile, "w") as f:
+            print("triple_id", "case", "control1", "control2", sep="\t", file=f)
+            for i, triple in enumerate(triples):
+                print(i+1, triple.case, triple.control1, triple.control2, sep="\t", file=f)
+
+

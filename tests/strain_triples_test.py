@@ -1,6 +1,9 @@
+import collections
+import filecmp
 import os
 import logging
 import pytest
+import subprocess
 
 from triphecta import (
     genotypes,
@@ -12,7 +15,7 @@ from triphecta import (
 )
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
-data_dir = os.path.join(this_dir, "data", "strain_triple")
+data_dir = os.path.join(this_dir, "data", "strain_triples")
 
 
 @pytest.fixture(scope="function")
@@ -100,3 +103,18 @@ def test_find_strain_triples(genos, phenos, constraints, caplog):
     ]
 
     assert triples.triples == expect
+
+
+def test_write_triples_names_file():
+    tmp_out = "tmp.strain_triples.write_triples_names_file.tsv"
+    subprocess.check_output(f"rm -f {tmp_out}", shell=True)
+    Triple = collections.namedtuple("Triple", ["case", "control1", "control2"])
+    triples = [
+        Triple("case1", "control1.1", "control1.2"),
+        Triple("case2", "control2.1", "control2.2"),
+        Triple("case3", "control3.2", "control3.2"),
+    ]
+    strain_triples.StrainTriples._write_triples_names_file(triples, tmp_out)
+    expect = os.path.join(data_dir, "write_triples_names_file.tsv")
+    assert filecmp.cmp(tmp_out, expect, shallow=False)
+    os.unlink(tmp_out)
