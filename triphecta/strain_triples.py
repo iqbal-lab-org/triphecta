@@ -14,7 +14,7 @@ class StrainTriples:
         self.top_n_genos = top_n_genos
         self.triples = []
 
-    def find_strain_triples(self, wanted_phenos, pheno_compare):
+    def find_strain_triples(self, wanted_phenos):
         # The initial use case for this was to get a sample that is resistant to
         # drug X, and find two closest (in terms of genomic distance) neighbours
         # that are sensitive to drug X. But we may be interested in other phenotypes,
@@ -34,7 +34,7 @@ class StrainTriples:
             if sample_name in self.genos.excluded_samples:
                 continue
 
-            if not pheno_compare.phenos_agree_on_features(
+            if not self.pheno_compare.phenos_agree_on_features(
                 self.phenos[sample_name], wanted_phenos, wanted_pheno_keys
             ):
                 continue
@@ -43,7 +43,7 @@ class StrainTriples:
             neighbours = sample_neighbours_finding.ranked_neighbours_for_one_sample(
                 self.genos,
                 self.phenos,
-                pheno_compare,
+                self.pheno_compare,
                 sample_name,
                 top_n_genos=self.top_n_genos,
             )

@@ -80,7 +80,7 @@ def test_find_strain_triples(genos, phenos, constraints, caplog):
     pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
     triples = strain_triples.StrainTriples(genos, phenos, pheno_compare, top_n_genos=10)
     wanted_phenos = {"p1": "R", "p2": "R"}
-    triples.find_strain_triples(wanted_phenos, pheno_compare)
+    triples.find_strain_triples(wanted_phenos)
 
     rank_data_s1_1 = sample_neighbours_finding.RankData(
         sample="s3", rank_sum=0, geno_rank=0, pheno_rank=0, geno_dist=1, pheno_dist=0
