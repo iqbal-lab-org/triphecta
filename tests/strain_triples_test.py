@@ -47,6 +47,15 @@ def genos(request):
         (4, 6): 7,
         (5, 6): 1,
     }
+    genos.vcf_files = {
+        "s1": os.path.join(data_dir, "genos.vcf.1"),
+        "s2": os.path.join(data_dir, "genos.vcf.1"),
+        "s3": os.path.join(data_dir, "genos.vcf.1"),
+        "s4": os.path.join(data_dir, "genos.vcf.2"),
+        "s5": os.path.join(data_dir, "genos.vcf.2"),
+        "s6": os.path.join(data_dir, "genos.vcf.2"),
+        "s7": os.path.join(data_dir, "genos.vcf.3"),
+    }
     return genos
 
 
@@ -110,10 +119,11 @@ def test_write_triples_names_file():
     tmp_out = "tmp.strain_triples.write_triples_names_file.tsv"
     subprocess.check_output(f"rm -f {tmp_out}", shell=True)
     Triple = collections.namedtuple("Triple", ["case", "control1", "control2"])
+    Control = collections.namedtuple("Control", ["sample"])
     triples = [
-        Triple("case1", "control1.1", "control1.2"),
-        Triple("case2", "control2.1", "control2.2"),
-        Triple("case3", "control3.2", "control3.2"),
+        Triple("case1", Control("control1.1"), Control("control1.2")),
+        Triple("case2", Control("control2.1"), Control("control2.2")),
+        Triple("case3", Control("control3.2"), Control("control3.2")),
     ]
     strain_triples.StrainTriples._write_triples_names_file(triples, tmp_out)
     expect = os.path.join(data_dir, "write_triples_names_file.tsv")
@@ -150,3 +160,21 @@ def test_write_variants_summary_file():
     expect = os.path.join(data_dir, "write_variants_summary_file.with_mask.tsv")
     assert filecmp.cmp(tmp_out, expect, shallow=False)
     os.unlink(tmp_out)
+
+
+def test_run_analysis(genos, phenos, constraints, caplog):
+    caplog.set_level(logging.INFO)
+    pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
+    triples = strain_triples.StrainTriples(genos, phenos, pheno_compare, top_n_genos=10)
+    wanted_phenos = {"p1": "R", "p2": "R"}
+    tmp_dir = "tmp.strain_triples.run_analysis"
+    subprocess.check_output(f"rm -rf {tmp_dir}", shell=True)
+    os.mkdir(tmp_dir)
+    outprefix = os.path.join(tmp_dir, "out")
+    mask_file = os.path.join(data_dir, "run_analysis.mask.bed")
+    got = triples.run_analysis(wanted_phenos, outprefix, mask_file=mask_file)
+    # The contents of these files are checked elsewhere. This test is just to
+    # check then run of whole pipeline doesn't crash
+    for filename in got.values():
+        assert os.path.exists(filename)
+    subprocess.check_output(f"rm -r {tmp_dir}", shell=True)

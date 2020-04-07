@@ -1,6 +1,8 @@
 import logging
+import os
+import subprocess
 
-from triphecta import phenotypes, sample_neighbours_finding, strain_triple
+from triphecta import phenotypes, sample_neighbours_finding, strain_triple, vcf
 
 
 class StrainTriples:
@@ -69,7 +71,7 @@ class StrainTriples:
         with open(outfile, "w") as f:
             print("triple_id", "case", "control1", "control2", sep="\t", file=f)
             for i, triple in enumerate(triples):
-                print(i+1, triple.case, triple.control1, triple.control2, sep="\t", file=f)
+                print(i+1, triple.case, triple.control1.sample, triple.control2.sample, sep="\t", file=f)
 
 
     @classmethod
@@ -88,4 +90,50 @@ class StrainTriples:
                 in_triples = [(1 if variant_index in t.variant_indexes_of_interest else 0) for t in triples]
                 freq = round(sum(in_triples) / len(in_triples), 4)
                 print(variant_index +1, in_mask, variant.CHROM, variant.POS+1, variant.REF, ",".join(variant.ALTS), freq, *in_triples, sep="\t", file=f)
+
+
+    def run_analysis(self, wanted_phenos, outprefix, mask_file=None):
+        self.find_strain_triples(wanted_phenos)
+        if len(self.triples) == 0:
+            logging.info("No strain triples found. Stopping")
+            return
+
+        # The VCFs are expected to have the same positions. Use the first
+        # VCF to load the variants and get the mask positions
+        vcf_file = self.genos.vcf_files[self.triples[0].case]
+        logging.info(f"Load variant positions from first VCF file {vcf_file}")
+        _, expect_variants = vcf.load_variant_calls_from_vcf_file(vcf_file)
+        if mask_file is None:
+            mask = None
+        else:
+            logging.info(f"Loading mask from file {mask_file}")
+            mask = vcf.vcf_to_variant_positions_to_mask_from_bed_file(vcf_file, mask_file)
+
+        file_per_triple_dir = outprefix + ".triples"
+        os.mkdir(file_per_triple_dir)
+
+        for triple_index, triple in enumerate(self.triples):
+            logging.info(f"Processing triple {triple_index+1} of {len(self.triples)}")
+            case_vcf = self.genos.vcf_files[triple.case]
+            control1_vcf = self.genos.vcf_files[triple.control1.sample]
+            control2_vcf = self.genos.vcf_files[triple.control2.sample]
+            triple.set_variants(expect_variants)
+            triple.load_variants_from_vcf_files(case_vcf, control1_vcf, control2_vcf)
+            triple.update_variants_of_interest()
+            outfile = os.path.join(file_per_triple_dir, f"{triple_index+1}.tsv")
+            triple.write_variants_of_interest_file(outfile, vcf_records_to_mask=mask)
+
+        triple_names_file = outprefix + ".triple_ids.tsv"
+        logging.info(f"Writing file of triple and sample ids {triple_names_file}")
+        StrainTriples._write_triples_names_file(self.triples, triple_names_file)
+
+        variants_file = outprefix + ".variants.tsv"
+        logging.info(f"Writing file of variants {variants_file}")
+        StrainTriples._write_variants_summary_file(self.triples, variants_file, vcf_records_to_mask=mask)
+
+        return {
+            "triples_names_file": triple_names_file,
+            "variants_file": variants_file,
+            "triples_dir": file_per_triple_dir,
+        }
 
