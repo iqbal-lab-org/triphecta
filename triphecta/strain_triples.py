@@ -72,3 +72,20 @@ class StrainTriples:
                 print(i+1, triple.case, triple.control1, triple.control2, sep="\t", file=f)
 
 
+    @classmethod
+    def _write_variants_summary_file(cls, triples, outfile, vcf_records_to_mask=None):
+        with open(outfile, "w") as f:
+            print("variant_id", "in_mask", "chrom", "pos", "ref", "alt", "freq", *[f"Triple.{i+1}" for i in range(len(triples))], sep="\t", file=f)
+            for variant_index, variant in enumerate(triples[0].variants):
+                if (
+                    vcf_records_to_mask is not None
+                    and variant.CHROM in vcf_records_to_mask
+                    and variant.POS in vcf_records_to_mask[variant.CHROM]
+                ):
+                    in_mask = 1
+                else:
+                    in_mask = 0
+                in_triples = [(1 if variant_index in t.variant_indexes_of_interest else 0) for t in triples]
+                freq = round(sum(in_triples) / len(in_triples), 4)
+                print(variant_index +1, in_mask, variant.CHROM, variant.POS+1, variant.REF, ",".join(variant.ALTS), freq, *in_triples, sep="\t", file=f)
+

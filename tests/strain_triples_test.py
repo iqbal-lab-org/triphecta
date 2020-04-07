@@ -12,6 +12,7 @@ from triphecta import (
     sample_neighbours_finding,
     strain_triple,
     strain_triples,
+    vcf,
 )
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
@@ -116,5 +117,36 @@ def test_write_triples_names_file():
     ]
     strain_triples.StrainTriples._write_triples_names_file(triples, tmp_out)
     expect = os.path.join(data_dir, "write_triples_names_file.tsv")
+    assert filecmp.cmp(tmp_out, expect, shallow=False)
+    os.unlink(tmp_out)
+
+
+def test_write_variants_summary_file():
+    triples = [
+        strain_triple.StrainTriple("case1", "control1", "control2"),
+        strain_triple.StrainTriple("case2", "control2", "control2"),
+        strain_triple.StrainTriple("case3", "control3", "control3"),
+        strain_triple.StrainTriple("case4", "control4", "control4"),
+    ]
+    triples[0].variants = [
+        vcf.Variant(CHROM="ref_1", POS=9, REF="A", ALTS=["C"]),
+        vcf.Variant(CHROM="ref_1", POS=10, REF="A", ALTS=["C,G"]),
+        vcf.Variant(CHROM="ref_1", POS=11, REF="C", ALTS=["T"]),
+        vcf.Variant(CHROM="ref_2", POS=42, REF="T", ALTS=["A"]),
+    ]
+    triples[0].variant_indexes_of_interest = {0, 1, 2, 3}
+    triples[1].variant_indexes_of_interest = set()
+    triples[2].variant_indexes_of_interest = {0, 1,2}
+    triples[3].variant_indexes_of_interest = {2}
+    tmp_out = "tmp.strain_triples.write_variants_summary_file.tsv"
+    subprocess.check_output(f"rm -f {tmp_out}", shell=True)
+    strain_triples.StrainTriples._write_variants_summary_file(triples, tmp_out, vcf_records_to_mask=None)
+    expect = os.path.join(data_dir, "write_variants_summary_file.no_mask.tsv")
+    assert filecmp.cmp(tmp_out, expect, shallow=False)
+    os.unlink(tmp_out)
+
+    mask = {"ref_1": {9,11}, "ref_2": {42}}
+    strain_triples.StrainTriples._write_variants_summary_file(triples, tmp_out, vcf_records_to_mask=mask)
+    expect = os.path.join(data_dir, "write_variants_summary_file.with_mask.tsv")
     assert filecmp.cmp(tmp_out, expect, shallow=False)
     os.unlink(tmp_out)
