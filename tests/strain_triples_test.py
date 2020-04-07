@@ -146,17 +146,21 @@ def test_write_variants_summary_file():
     ]
     triples[0].variant_indexes_of_interest = {0, 1, 2, 3}
     triples[1].variant_indexes_of_interest = set()
-    triples[2].variant_indexes_of_interest = {0, 1,2}
+    triples[2].variant_indexes_of_interest = {0, 1, 2}
     triples[3].variant_indexes_of_interest = {2}
     tmp_out = "tmp.strain_triples.write_variants_summary_file.tsv"
     subprocess.check_output(f"rm -f {tmp_out}", shell=True)
-    strain_triples.StrainTriples._write_variants_summary_file(triples, tmp_out, vcf_records_to_mask=None)
+    strain_triples.StrainTriples._write_variants_summary_file(
+        triples, tmp_out, vcf_records_to_mask=None
+    )
     expect = os.path.join(data_dir, "write_variants_summary_file.no_mask.tsv")
     assert filecmp.cmp(tmp_out, expect, shallow=False)
     os.unlink(tmp_out)
 
-    mask = {"ref_1": {9,11}, "ref_2": {42}}
-    strain_triples.StrainTriples._write_variants_summary_file(triples, tmp_out, vcf_records_to_mask=mask)
+    mask = {"ref_1": {9, 11}, "ref_2": {42}}
+    strain_triples.StrainTriples._write_variants_summary_file(
+        triples, tmp_out, vcf_records_to_mask=mask
+    )
     expect = os.path.join(data_dir, "write_variants_summary_file.with_mask.tsv")
     assert filecmp.cmp(tmp_out, expect, shallow=False)
     os.unlink(tmp_out)

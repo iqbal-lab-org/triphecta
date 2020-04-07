@@ -65,19 +65,35 @@ class StrainTriples:
                 strain_triple.StrainTriple(sample_name, neighbours[0], neighbours[1])
             )
 
-
     @classmethod
     def _write_triples_names_file(cls, triples, outfile):
         with open(outfile, "w") as f:
             print("triple_id", "case", "control1", "control2", sep="\t", file=f)
             for i, triple in enumerate(triples):
-                print(i+1, triple.case, triple.control1.sample, triple.control2.sample, sep="\t", file=f)
-
+                print(
+                    i + 1,
+                    triple.case,
+                    triple.control1.sample,
+                    triple.control2.sample,
+                    sep="\t",
+                    file=f,
+                )
 
     @classmethod
     def _write_variants_summary_file(cls, triples, outfile, vcf_records_to_mask=None):
         with open(outfile, "w") as f:
-            print("variant_id", "in_mask", "chrom", "pos", "ref", "alt", "freq", *[f"Triple.{i+1}" for i in range(len(triples))], sep="\t", file=f)
+            print(
+                "variant_id",
+                "in_mask",
+                "chrom",
+                "pos",
+                "ref",
+                "alt",
+                "freq",
+                *[f"Triple.{i+1}" for i in range(len(triples))],
+                sep="\t",
+                file=f,
+            )
             for variant_index, variant in enumerate(triples[0].variants):
                 if (
                     vcf_records_to_mask is not None
@@ -87,10 +103,23 @@ class StrainTriples:
                     in_mask = 1
                 else:
                     in_mask = 0
-                in_triples = [(1 if variant_index in t.variant_indexes_of_interest else 0) for t in triples]
+                in_triples = [
+                    (1 if variant_index in t.variant_indexes_of_interest else 0)
+                    for t in triples
+                ]
                 freq = round(sum(in_triples) / len(in_triples), 4)
-                print(variant_index +1, in_mask, variant.CHROM, variant.POS+1, variant.REF, ",".join(variant.ALTS), freq, *in_triples, sep="\t", file=f)
-
+                print(
+                    variant_index + 1,
+                    in_mask,
+                    variant.CHROM,
+                    variant.POS + 1,
+                    variant.REF,
+                    ",".join(variant.ALTS),
+                    freq,
+                    *in_triples,
+                    sep="\t",
+                    file=f,
+                )
 
     def run_analysis(self, wanted_phenos, outprefix, mask_file=None):
         self.find_strain_triples(wanted_phenos)
@@ -107,7 +136,9 @@ class StrainTriples:
             mask = None
         else:
             logging.info(f"Loading mask from file {mask_file}")
-            mask = vcf.vcf_to_variant_positions_to_mask_from_bed_file(vcf_file, mask_file)
+            mask = vcf.vcf_to_variant_positions_to_mask_from_bed_file(
+                vcf_file, mask_file
+            )
 
         file_per_triple_dir = outprefix + ".triples"
         os.mkdir(file_per_triple_dir)
@@ -129,11 +160,12 @@ class StrainTriples:
 
         variants_file = outprefix + ".variants.tsv"
         logging.info(f"Writing file of variants {variants_file}")
-        StrainTriples._write_variants_summary_file(self.triples, variants_file, vcf_records_to_mask=mask)
+        StrainTriples._write_variants_summary_file(
+            self.triples, variants_file, vcf_records_to_mask=mask
+        )
 
         return {
             "triples_names_file": triple_names_file,
             "variants_file": variants_file,
             "triples_dir": file_per_triple_dir,
         }
-
