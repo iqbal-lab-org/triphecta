@@ -127,6 +127,7 @@ def test_geno_and_pheno_distances_to_rank_table():
     expect = expect[:2]
     assert expect == got
 
+
 def test_ranked_neighbours_for_one_sample(genos, phenos, constraints):
     pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
     got = sample_neighbours_finding.ranked_neighbours_for_one_sample(
@@ -161,7 +162,7 @@ def test_ranked_neighbours_for_one_sample(genos, phenos, constraints):
     assert got == expect
 
     got = sample_neighbours_finding.ranked_neighbours_for_one_sample(
-        genos, phenos, pheno_compare, "s1", max_pheno_dist=2,
+        genos, phenos, pheno_compare, "s1", max_pheno_dist=2
     )
     del expect[0]
     assert got == expect
