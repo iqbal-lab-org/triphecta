@@ -119,11 +119,11 @@ def test_write_triples_names_file():
     tmp_out = "tmp.strain_triples.write_triples_names_file.tsv"
     subprocess.check_output(f"rm -f {tmp_out}", shell=True)
     Triple = collections.namedtuple("Triple", ["case", "control1", "control2"])
-    Control = collections.namedtuple("Control", ["sample"])
+    Control = collections.namedtuple("Control", ["sample", "geno_dist", "pheno_dist"])
     triples = [
-        Triple("case1", Control("control1.1"), Control("control1.2")),
-        Triple("case2", Control("control2.1"), Control("control2.2")),
-        Triple("case3", Control("control3.2"), Control("control3.2")),
+        Triple("case1", Control("control1.1", 1, 2), Control("control1.2", 4, 5)),
+        Triple("case2", Control("control2.1", 2, 3), Control("control2.2", 5, 6)),
+        Triple("case3", Control("control3.2", 3, 4), Control("control3.2", 6, 7)),
     ]
     strain_triples.StrainTriples._write_triples_names_file(triples, tmp_out)
     expect = os.path.join(data_dir, "write_triples_names_file.tsv")

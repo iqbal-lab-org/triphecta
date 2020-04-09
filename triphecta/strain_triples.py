@@ -66,13 +66,28 @@ class StrainTriples:
     @classmethod
     def _write_triples_names_file(cls, triples, outfile):
         with open(outfile, "w") as f:
-            print("triple_id", "case", "control1", "control2", sep="\t", file=f)
+            print(
+                "triple_id",
+                "case",
+                "control1",
+                "geno_dist1",
+                "pheno_dist1",
+                "control2",
+                "geno_dist2",
+                "pheno_dist2",
+                sep="\t",
+                file=f,
+            )
             for i, triple in enumerate(triples):
                 print(
                     i + 1,
                     triple.case,
                     triple.control1.sample,
+                    triple.control1.geno_dist,
+                    triple.control1.pheno_dist,
                     triple.control2.sample,
+                    triple.control2.geno_dist,
+                    triple.control2.pheno_dist,
                     sep="\t",
                     file=f,
                 )
