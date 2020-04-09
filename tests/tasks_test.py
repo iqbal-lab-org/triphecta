@@ -59,6 +59,7 @@ def test_pipeline(caplog):
     options.phenos_tsv = os.path.join(data_dir, "phenos.tsv")
     options.pheno_constraints_json = os.path.join(data_dir, "pheno_constraint.json")
     options.out = "tmp.tasks.triples.out"
+    subprocess.check_output(f"rm -rf {options.out}.*", shell=True)
     options.wanted_pheno = ["drug1,R"]
     options.top_n_genos = 5
     options.max_pheno_diffs = 1
