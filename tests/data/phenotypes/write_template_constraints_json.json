@@ -1,0 +1,20 @@
+{
+  "pheno1": {
+    "method": "range",
+    "must_be_same": true,
+    "params": {
+      "high": 1,
+      "low": 0
+    }
+  },
+  "pheno2": {
+    "method": "equal",
+    "must_be_same": true,
+    "params": {}
+  },
+  "pheno3": {
+    "method": "equal",
+    "must_be_same": true,
+    "params": {}
+  }
+}

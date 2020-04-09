@@ -36,7 +36,9 @@ class Genotypes:
         self.excluded_samples = dict()
 
     def _make_sample_name_to_index(self):
-        self.sample_name_to_index = {name: i for i, name in enumerate(self.sample_names_list)}
+        self.sample_name_to_index = {
+            name: i for i, name in enumerate(self.sample_names_list)
+        }
 
     def load_all_data(self):
         if self.file_of_vcf_filenames is None:
@@ -50,12 +52,16 @@ class Genotypes:
         if self.distances_pickle_file is None:
             raise RuntimeError("Must provide distances file")
         else:
-            self.sample_names, self.distances, self.vcf_variant_counts = distances.load_from_pickle(
+            self.sample_names_list, self.distances, self.vcf_variant_counts = distances.load_from_pickle(
                 self.distances_pickle_file
             )
 
     def distance(self, sample1, sample2):
-        key = tuple(sorted([self.sample_name_to_index[sample1], self.sample_name_to_index[sample2]]))
+        key = tuple(
+            sorted(
+                [self.sample_name_to_index[sample1], self.sample_name_to_index[sample2]]
+            )
+        )
         return self.distances[key]
 
     def sample_names(self):
@@ -66,7 +72,7 @@ class Genotypes:
         all_distances = {
             other: self.distance(sample, other)
             for other in self.sample_names()
-            if sample != other
+            if sample != other and other not in self.excluded_samples
         }
         if top_n is None:
             return all_distances
@@ -80,13 +86,15 @@ class Genotypes:
 
             return {k: v for k, v in all_distances.items() if v <= max_value}
 
-
-    def update_excluded_samples_using_variant_counts(self, minimum_percent_hom_calls=90.0, count_het_to_hom_as_hom=True):
+    def update_excluded_samples_using_variant_counts(
+        self, minimum_percent_hom_calls=90.0, count_het_to_hom_as_hom=True
+    ):
         for i, counts in enumerate(self.vcf_variant_counts):
             total_calls = sum(counts)
-            hom_calls = counts.hom + (counts.het_to_hom if count_het_to_hom_as_hom else 0)
+            hom_calls = counts.hom + (
+                counts.het_to_hom if count_het_to_hom_as_hom else 0
+            )
             if 100 * hom_calls / total_calls < minimum_percent_hom_calls:
                 if i not in self.excluded_samples:
                     self.excluded_samples[i] = set()
                 self.excluded_samples[i].add("Too few hom calls")
-

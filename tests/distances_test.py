@@ -41,10 +41,16 @@ def test_distances_between_vcf_files():
         for sample, filename in filenames.items():
             print(sample, filename, sep="\t", file=f)
     distances.pickle_distances_between_vcf_files(
-        file_of_filenames, pickle_file, threads=2, het_to_hom_key="ignore", mask_bed_file=mask_bed_file,
+        file_of_filenames,
+        pickle_file,
+        threads=2,
+        het_to_hom_key="ignore",
+        mask_bed_file=mask_bed_file,
     )
     os.unlink(file_of_filenames)
-    got_sample_names, got_dists, got_variant_counts = distances.load_from_pickle(pickle_file)
+    got_sample_names, got_dists, got_variant_counts = distances.load_from_pickle(
+        pickle_file
+    )
     assert got_dists == expect_dists
     assert got_variant_counts == expect_variant_counts
     if os.path.exists(pickle_file):
@@ -65,18 +71,24 @@ def test_update_distances_for_one_sample():
     data2 = [("s1", 42.0), ("s3", 50.0)]
     data3 = [("s1", 200.0)]
     all_dists = {}
-    distances._update_distances_for_one_sample(0, data1, all_dists, sample_names_to_index)
+    distances._update_distances_for_one_sample(
+        0, data1, all_dists, sample_names_to_index
+    )
     expect_distances = {(0, 1): 42, (0, 2): 100}
     assert expect_distances == all_dists
 
-    distances._update_distances_for_one_sample(1, data2, all_dists, sample_names_to_index)
+    distances._update_distances_for_one_sample(
+        1, data2, all_dists, sample_names_to_index
+    )
     expect_distances[(1, 2)] = 50
     assert expect_distances == all_dists
 
     # This has distance s3 to s1 of 200, which doesn't agree with the
     # existing value of 100
     with pytest.raises(RuntimeError):
-        distances._update_distances_for_one_sample(2, data3, all_dists, sample_names_to_index)
+        distances._update_distances_for_one_sample(
+            2, data3, all_dists, sample_names_to_index
+        )
 
 
 def test_load_sample_distances_file_of_filenames():
@@ -101,7 +113,9 @@ def test_load_all_one_sample_distances_files():
                 sep="\t",
                 file=f,
             )
-    got_names, got_dists = distances.load_all_one_sample_distances_files(tmp_tsv, threads=2)
+    got_names, got_dists = distances.load_all_one_sample_distances_files(
+        tmp_tsv, threads=2
+    )
     expect_names = ["s1", "s2", "s3", "s4"]
     expect_dists = {
         (0, 1): 3.0,

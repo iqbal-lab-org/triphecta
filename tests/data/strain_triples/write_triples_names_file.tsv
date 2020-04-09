@@ -1,0 +1,4 @@
+triple_id	case	control1	geno_dist1	pheno_dist1	control2	geno_dist2	pheno_dist2
+1	case1	control1.1	1	2	control1.2	4	5
+2	case2	control2.1	2	3	control2.2	5	6
+3	case3	control3.2	3	4	control3.2	6	7

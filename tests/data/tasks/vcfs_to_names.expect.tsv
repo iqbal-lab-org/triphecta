@@ -1,0 +1,11 @@
+sample	vcf_file
+sample_1	tests/data/tasks/vcfs.1.vcf
+sample_2	tests/data/tasks/vcfs.2.vcf
+sample_3	tests/data/tasks/vcfs.3.vcf
+sample_4	tests/data/tasks/vcfs.4.vcf
+sample_5	tests/data/tasks/vcfs.5.vcf
+sample_6	tests/data/tasks/vcfs.6.vcf
+sample_7	tests/data/tasks/vcfs.7.vcf
+sample_8	tests/data/tasks/vcfs.8.vcf
+sample_9	tests/data/tasks/vcfs.9.vcf
+sample_10	tests/data/tasks/vcfs.10.vcf

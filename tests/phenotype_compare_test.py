@@ -128,6 +128,48 @@ def test_phenos_equal_account_for_none_using_method_range():
     assert f(None, 0, c, False, low=1, high=2)
 
 
+def test_phenos_agree_on_one_feature():
+    constraints = {
+        "d0": {"must_be_same": True, "method": "equal", "params": {}},
+        "d1": {
+            "must_be_same": False,
+            "method": "range",
+            "params": {"low": 1, "high": 2},
+        },
+    }
+    pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
+    p1 = {"d0": True, "d1": 1.5}
+    p2 = {"d0": True, "d1": 1.5}
+    p3 = {"d0": False, "d1": 0.5}
+    p4 = {"d0": False, "d1": 2.5}
+    assert pheno_compare.phenos_agree_on_one_feature(p1, p2, "d0")
+    assert pheno_compare.phenos_agree_on_one_feature(p1, p2, "d1")
+    assert not pheno_compare.phenos_agree_on_one_feature(p1, p3, "d0")
+    assert not pheno_compare.phenos_agree_on_one_feature(p1, p3, "d1")
+    assert not pheno_compare.phenos_agree_on_one_feature(p1, p4, "d0")
+    assert not pheno_compare.phenos_agree_on_one_feature(p1, p4, "d1")
+
+
+def test_phenos_agree_on_features():
+    constraints = {
+        "d0": {"must_be_same": True, "method": "equal", "params": {}},
+        "d1": {
+            "must_be_same": False,
+            "method": "range",
+            "params": {"low": 1, "high": 2},
+        },
+    }
+    pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
+    p1 = {"d0": True, "d1": 1.5}
+    p2 = {"d0": True, "d1": 1.5}
+    p3 = {"d0": True, "d1": 0.5}
+    p4 = {"d0": False, "d1": 1.5}
+    features = {"d0", "d1"}
+    assert pheno_compare.phenos_agree_on_features(p1, p2, features)
+    assert not pheno_compare.phenos_agree_on_features(p1, p3, features)
+    assert not pheno_compare.phenos_agree_on_features(p1, p4, features)
+
+
 def test_differences():
     constraints = {
         "d0": {"must_be_same": True, "method": "equal", "params": {}},

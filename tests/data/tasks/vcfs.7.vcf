@@ -1,0 +1,12 @@
+# header
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample_7
+ref_1	1	.	A	C	42.42	PASS	.	GT	0/0
+ref_1	2	.	A	C	42.42	PASS	.	GT	0/0
+ref_1	3	.	A	C	42.42	PASS	.	GT	0/0
+ref_1	4	.	A	C	42.42	PASS	.	GT	0/0
+ref_1	5	.	A	C	42.42	PASS	.	GT	0/0
+ref_1	6	.	A	C	42.42	PASS	.	GT	1/1
+ref_1	7	.	A	C	42.42	PASS	.	GT	1/1
+ref_1	8	.	A	C	42.42	PASS	.	GT	1/1
+ref_1	9	.	A	C	42.42	PASS	.	GT	1/1
+ref_1	10	.	A	C	42.42	PASS	.	GT	0/0

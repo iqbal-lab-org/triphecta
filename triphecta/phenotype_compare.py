@@ -71,6 +71,21 @@ class PhenotypeCompare:
         else:
             return compare_function(p1, p2, **kwargs)
 
+    def phenos_agree_on_one_feature(self, pheno1, pheno2, key):
+        return PhenotypeCompare._phenos_equal_account_for_none(
+            pheno1[key],
+            pheno2[key],
+            self.compare_functions[self.constraints[key]["method"]],
+            self.count_unknown_as_diff,
+            **self.constraints[key]["params"],
+        )
+
+    def phenos_agree_on_features(self, pheno1, pheno2, keys):
+        for key in keys:
+            if not self.phenos_agree_on_one_feature(pheno1, pheno2, key):
+                return False
+        return True
+
     def differences(self, pheno1, pheno2):
         """Returns number of differences between the two phenotypes.
         Assumes that satisfy_required_differences(pheno1, pheno2) is True.
@@ -81,13 +96,7 @@ class PhenotypeCompare:
         for key, constraint in self.constraints.items():
             if constraint["must_be_same"] is False:
                 continue
-            elif not PhenotypeCompare._phenos_equal_account_for_none(
-                pheno1[key],
-                pheno2[key],
-                self.compare_functions[constraint["method"]],
-                self.count_unknown_as_diff,
-                **constraint["params"],
-            ):
+            elif not self.phenos_agree_on_one_feature(pheno1, pheno2, key):
                 differences += 1
 
         return differences

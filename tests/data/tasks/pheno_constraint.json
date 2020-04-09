@@ -1,0 +1,30 @@
+{
+  "drug1": {
+    "method": "equal",
+    "must_be_same": true,
+    "params": {}
+  },
+  "drug2": {
+    "method": "equal",
+    "must_be_same": true,
+    "params": {}
+  },
+  "drug3": {
+    "method": "equal",
+    "must_be_same": true,
+    "params": {}
+  },
+  "drug4": {
+    "method": "range",
+    "must_be_same": true,
+    "params": {
+      "high": 0.5,
+      "low": 0
+    }
+  },
+  "drug5": {
+    "method": "equal",
+    "must_be_same": true,
+    "params": {}
+  }
+}

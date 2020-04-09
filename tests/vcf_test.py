@@ -26,7 +26,7 @@ def test_vcf_line_to_variant_and_gt():
     ]
     expect_variant = vcf.Variant(CHROM="seq1", POS=41, REF="C", ALTS=["T", "G"])
     got_gt, got_variant = vcf.vcf_line_to_variant_and_gt("\t".join(fields))
-    assert got_gt == 0
+    assert got_gt == {0}
     assert got_variant == expect_variant
 
     fields = [
@@ -43,7 +43,7 @@ def test_vcf_line_to_variant_and_gt():
     ]
     expect_variant = vcf.Variant(CHROM="seq2", POS=42, REF="A", ALTS=["C"])
     got_gt, got_variant = vcf.vcf_line_to_variant_and_gt("\t".join(fields))
-    assert got_gt == "."
+    assert got_gt == None
     assert got_variant == expect_variant
 
     fields[6] = "PASS"
@@ -55,19 +55,19 @@ def test_vcf_line_to_variant_and_gt():
     fields[9] = "0/1"
     expect_variant = vcf.Variant(CHROM="seq2", POS=42, REF="A", ALTS=["C"])
     got_gt, got_variant = vcf.vcf_line_to_variant_and_gt("\t".join(fields))
-    assert got_gt == "."
+    assert got_gt == {0, 1}
     assert got_variant == expect_variant
 
     fields[9] = "1/1"
     expect_variant = vcf.Variant(CHROM="seq2", POS=42, REF="A", ALTS=["C"])
     got_gt, got_variant = vcf.vcf_line_to_variant_and_gt("\t".join(fields))
-    assert got_gt == 1
+    assert got_gt == {1}
     assert got_variant == expect_variant
 
 
 def test_load_variant_calls_from_vcf_file():
     infile = os.path.join(data_dir, "load_variants_from_vcf_file.vcf")
-    expect_calls = [0, ".", 1, ".", "."]
+    expect_calls = [{0}, {0, 1}, {1}, None, None]
     expect_variants = [
         vcf.Variant(CHROM="ref_42", POS=10, REF="C", ALTS=["G"]),
         vcf.Variant(CHROM="ref_42", POS=11, REF="A", ALTS=["C"]),
@@ -108,13 +108,17 @@ def test_convert_het_to_hom():
 
 def test_bed_mask_file_to_dict():
     infile = os.path.join(data_dir, "bed_mask_file_to_dict.bed")
-    expect = {"chrom1": [(0, 42)], "chrom2": [(20, 29), (100,199)]}
+    expect = {"chrom1": [(0, 42)], "chrom2": [(20, 29), (100, 199)]}
     assert vcf._bed_mask_file_to_dict(infile) == expect
 
 
 def test_vcf_to_variant_positions_to_mask_from_bed_file():
-    vcf_file = os.path.join(data_dir, "vcf_to_variant_indexes_to_mask_from_bed_file.vcf")
-    bed_file = os.path.join(data_dir, "vcf_to_variant_indexes_to_mask_from_bed_file.bed")
+    vcf_file = os.path.join(
+        data_dir, "vcf_to_variant_indexes_to_mask_from_bed_file.vcf"
+    )
+    bed_file = os.path.join(
+        data_dir, "vcf_to_variant_indexes_to_mask_from_bed_file.bed"
+    )
     expect = {"ref_42": {99}, "ref_43": {49, 50}, "ref_44": {18}}
     got = vcf.vcf_to_variant_positions_to_mask_from_bed_file(vcf_file, bed_file)
     assert got == expect
@@ -144,13 +148,15 @@ def test_load_vcf_file_for_distance_calc():
     assert got_counts == expect_counts
 
     got_genos, got_counts = vcf.load_vcf_file_for_distance_calc(
-        infile, only_use_pass=False, numeric_filters={"GT_CONF": (True, 12)}, het_to_hom_min_pc_depth=99.0
+        infile,
+        only_use_pass=False,
+        numeric_filters={"GT_CONF": (True, 12)},
+        het_to_hom_min_pc_depth=99.0,
     )
     expect_genos = np.array([1, 0, 0, 0, 4], dtype=np.uint16)
     np.testing.assert_array_equal(got_genos, expect_genos)
     expect_counts = vcf.VariantCounts(het=1, hom=2, null=2, het_to_hom=0)
     assert got_counts == expect_counts
-
 
 
 def test_load_vcf_files_for_distance_calc():
@@ -165,7 +171,9 @@ def test_load_vcf_files_for_distance_calc():
             np.testing.assert_array_equal(g[0], e[0])
             assert g[1] == e[1]
 
-    got = vcf.load_vcf_files_for_distance_calc(filenames, threads=2, only_use_pass=True, het_to_hom_key="ignore")
+    got = vcf.load_vcf_files_for_distance_calc(
+        filenames, threads=2, only_use_pass=True, het_to_hom_key="ignore"
+    )
     expect = [
         (
             np.array([0, 0, 2, 3, 4], dtype=np.uint16),
@@ -199,7 +207,9 @@ def test_load_vcf_files_for_distance_calc():
         only_use_pass=False,
         numeric_filters={"GT_CONF": (True, 12)},
         het_to_hom_key="ignore",
-        mask_bed_file=os.path.join(data_dir, "load_vcf_files_for_distance_calc.mask.bed"),
+        mask_bed_file=os.path.join(
+            data_dir, "load_vcf_files_for_distance_calc.mask.bed"
+        ),
     )
     expect = [
         (
