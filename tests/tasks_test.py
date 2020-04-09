@@ -57,6 +57,15 @@ def test_pipeline(caplog):
     os.unlink(options.matrix_file)
     assert os.path.exists(distances_file)
 
+    # ----------------- distance_matrix ---------------------------------------
+    options = mock.Mock()
+    options.distances_file = distances_file
+    options.outfile = "tmp.tasks.distance_matrix.tsv"
+    subprocess.check_output("rm -f {options.outfile}", shell=True)
+    tasks.distance_matrix.run(options)
+    filecmp.cmp(options.outfile, expect_matrix, shallow=False)
+    os.unlink(options.outfile)
+
     # ----------------- triples -----------------------------------------------
     options = mock.Mock()
     options.vcfs_tsv = vcf_names_file

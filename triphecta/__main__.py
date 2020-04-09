@@ -126,6 +126,24 @@ def main(args=None):
     subparser_distances.set_defaults(func=triphecta.tasks.distances.run)
 
     # --------------------- pheno_constraints_template ------------------------
+    subparser_distance_matrix = subparsers.add_parser(
+        "distance_matrix",
+        help="Make a template phenotype constraints file, for use with 'triphecta triples'",
+        usage="triphecta pheno_constraints_template <phenos.tsv> <out.json>",
+        description="Make a template phenotype constraints file, for use with 'triphecta triples'",
+    )
+
+    subparser_distance_matrix.add_argument(
+        "distances_file", help="Name of distances file made by 'triphecta distances'"
+    )
+
+    subparser_distance_matrix.add_argument(
+        "outfile", help="Name of output distance matrix TSV file"
+    )
+
+    subparser_distance_matrix.set_defaults(func=triphecta.tasks.distance_matrix.run)
+
+    # --------------------- pheno_constraints_template ------------------------
     subparser_pheno_constraints_template = subparsers.add_parser(
         "pheno_constraints_template",
         help="Make a template phenotype constraints file, for use with 'triphecta triples'",
