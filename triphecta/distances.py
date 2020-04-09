@@ -96,6 +96,7 @@ def pickle_distances_between_vcf_files(
     with open(pickle_out, "wb") as f:
         pickle.dump((sample_names, dists, variant_counts), f)
     logging.info(f"Finished writing data to file {pickle_out}")
+    return sample_names, dists
 
 
 def _load_one_sample_distances_file(filename):
@@ -184,8 +185,24 @@ def pickle_load_all_one_sample_distances_files(
     )
     with open(pickle_out, "wb") as f:
         pickle.dump((names, dists, {}), f)
+    return names, dists
 
 
 def load_from_pickle(pickle_file):
     with open(pickle_file, "rb") as f:
         return pickle.load(f)
+
+
+def write_distance_matrix_file(sample_names, distance_matrix, outfile):
+    with open(outfile, "w") as f:
+        print("", *sample_names, sep="\t", file=f)
+        for i, sample in enumerate(sample_names):
+            out = []
+
+            for j, sample2 in enumerate(sample_names):
+                if i == j:
+                    out.append(0)
+                else:
+                    out.append(distance_matrix[tuple(sorted([i, j]))])
+
+            print(sample, *out, sep="\t", file=f)

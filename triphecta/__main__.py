@@ -83,6 +83,12 @@ def main(args=None):
     )
 
     subparser_distances.add_argument(
+        "--matrix_file",
+        help="Write distance matrix TSV file, can be read by eg dendropy",
+        metavar="FILENAME",
+    )
+
+    subparser_distances.add_argument(
         "--mask_bed_file",
         help="BED file of regions to ignore from all VCF files (tab-delimited, 3 columns: ref_name start end, coords 0-based and end coord not included)",
         metavar="FILENAME",
