@@ -1,4 +1,7 @@
+import filecmp
+import json
 import os
+import subprocess
 
 import pytest
 
@@ -53,3 +56,15 @@ def test_get_pheno_types():
     got_all, got_bools = phenotypes.Phenotypes._get_pheno_types(types)
     assert got_all == expect_all
     assert got_bools == expect_bools
+
+
+def test_write_template_constraints_json():
+    phenos = phenotypes.Phenotypes(
+        os.path.join(data_dir, "write_template_constraints_json.tsv")
+    )
+    tmp_json = "tmp.phenos.write_template_constraints.json"
+    subprocess.check_output(f"rm -f {tmp_json}", shell=True)
+    phenos.write_template_constraints_json(tmp_json)
+    expect_json = os.path.join(data_dir, "write_template_constraints_json.json")
+    assert filecmp.cmp(tmp_json, expect_json, shallow=True)
+    os.unlink(tmp_json)

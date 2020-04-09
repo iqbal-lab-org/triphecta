@@ -1,4 +1,5 @@
 import csv
+import json
 import logging
 
 data_lookup = {
@@ -91,6 +92,21 @@ class Phenotypes:
 
         assert len(infer_type) == len(types)
         return infer_type, bools
+
+    def write_template_constraints_json(self, outfile):
+        constraints = {}
+        for pheno, pheno_type in self.pheno_types.items():
+            constraints[pheno] = {"must_be_same": True, "params": {}}
+            if pheno_type == bool:
+                constraints[pheno]["method"] = "equal"
+            elif pheno_type == float:
+                constraints[pheno]["method"] = "range"
+                constraints[pheno]["params"] = {"low": 0, "high": 1}
+            else:
+                raise TypeError
+
+        with open(outfile, "w") as f:
+            json.dump(constraints, f, sort_keys=True, indent=2)
 
     def __getitem__(self, sample):
         return self.phenos[sample]

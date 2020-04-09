@@ -11,7 +11,18 @@ this_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(this_dir, "data", "tasks")
 
 
-def test_all(caplog):
+def test_pheno_constraints_template():
+    options = mock.Mock()
+    options.phenos_tsv = os.path.join(data_dir, "pheno_constraints_template.tsv")
+    options.json_out = "tmp.tasks.pheno_constraints_template.json"
+    subprocess.check_output(f"rm -f {options.json_out}", shell=True)
+    tasks.pheno_constraints_template.run(options)
+    expect_file = os.path.join(data_dir, "pheno_constraints_template.json")
+    assert filecmp.cmp(options.json_out, expect_file)
+    os.unlink(options.json_out)
+
+
+def test_pipeline(caplog):
     caplog.set_level(logging.INFO)
     vcf_names_file = "tmp.tasks.vcfs_to_names.tsv"
     mask_bed_file = os.path.join(data_dir, "mask.bed")
