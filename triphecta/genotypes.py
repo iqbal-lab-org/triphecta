@@ -52,7 +52,7 @@ class Genotypes:
         if self.distances_pickle_file is None:
             raise RuntimeError("Must provide distances file")
         else:
-            self.sample_names, self.distances, self.vcf_variant_counts = distances.load_from_pickle(
+            self.sample_names_list, self.distances, self.vcf_variant_counts = distances.load_from_pickle(
                 self.distances_pickle_file
             )
 

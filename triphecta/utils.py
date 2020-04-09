@@ -1,6 +1,8 @@
 import csv
 import os
 
+from triphecta import phenotypes
+
 
 def load_file_of_vcf_filenames(filename, check_vcf_files_exist=True):
     data = {}
@@ -47,3 +49,21 @@ def command_line_filter_list_to_dict(filter_list):
         filters[name] = (m, cutoff)
 
     return filters
+
+
+def command_line_wanted_phenos_to_dict(pheno_list):
+    if pheno_list is None:
+        return {}
+
+    wanted_phenos = {}
+
+    for string in pheno_list:
+        pheno, value = string.split(",")
+        try:
+            wanted_phenos[pheno] = phenotypes.Phenotypes.convert_one_variable_string(
+                value
+            )
+        except TypeError:
+            raise TypeError(f"Error parsing command line phenotypes string '{string}'")
+
+    return wanted_phenos

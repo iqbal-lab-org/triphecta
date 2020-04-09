@@ -178,7 +178,7 @@ def load_vcf_file_for_distance_calc(
         for line in f:
             if line.startswith("#"):
                 continue
-            fields = line.split("\t")
+            fields = line.rstrip().split("\t")
 
             if fields[0] in mask and int(fields[1]) - 1 in mask[fields[0]]:
                 continue

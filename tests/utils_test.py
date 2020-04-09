@@ -32,3 +32,10 @@ def test_command_line_filter_list_to_dict():
     expect = {"A": (True, 10.0), "B": (False, 20.0)}
     got = utils.command_line_filter_list_to_dict(filters_list)
     assert got == expect
+
+
+def test_command_line_wanted_phenos_to_dict():
+    pheno_list = ["Drug1,r", "Drug2,42"]
+    got = utils.command_line_wanted_phenos_to_dict(pheno_list)
+    expect = {"Drug1": True, "Drug2": 42.0}
+    assert got == expect

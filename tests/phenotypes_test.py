@@ -9,21 +9,21 @@ data_dir = os.path.join(this_dir, "data", "phenotypes")
 
 
 def test_convert_one_variable_string():
-    assert not phenotypes.Phenotypes._convert_one_variable_string("f")
-    assert not phenotypes.Phenotypes._convert_one_variable_string("s")
-    assert not phenotypes.Phenotypes._convert_one_variable_string("susceptible")
-    assert phenotypes.Phenotypes._convert_one_variable_string("r")
-    assert phenotypes.Phenotypes._convert_one_variable_string("resistant")
-    assert phenotypes.Phenotypes._convert_one_variable_string("true")
-    assert phenotypes.Phenotypes._convert_one_variable_string("") is None
-    assert phenotypes.Phenotypes._convert_one_variable_string(" ") is None
-    assert phenotypes.Phenotypes._convert_one_variable_string(".") is None
-    assert phenotypes.Phenotypes._convert_one_variable_string("None") is None
-    assert phenotypes.Phenotypes._convert_one_variable_string("null") is None
+    assert not phenotypes.Phenotypes.convert_one_variable_string("f")
+    assert not phenotypes.Phenotypes.convert_one_variable_string("s")
+    assert not phenotypes.Phenotypes.convert_one_variable_string("susceptible")
+    assert phenotypes.Phenotypes.convert_one_variable_string("r")
+    assert phenotypes.Phenotypes.convert_one_variable_string("resistant")
+    assert phenotypes.Phenotypes.convert_one_variable_string("true")
+    assert phenotypes.Phenotypes.convert_one_variable_string("") is None
+    assert phenotypes.Phenotypes.convert_one_variable_string(" ") is None
+    assert phenotypes.Phenotypes.convert_one_variable_string(".") is None
+    assert phenotypes.Phenotypes.convert_one_variable_string("None") is None
+    assert phenotypes.Phenotypes.convert_one_variable_string("null") is None
     with pytest.raises(ValueError):
-        phenotypes.Phenotypes._convert_one_variable_string("what is this")
+        phenotypes.Phenotypes.convert_one_variable_string("what is this")
     with pytest.raises(ValueError):
-        phenotypes.Phenotypes._convert_one_variable_string("1.2.3")
+        phenotypes.Phenotypes.convert_one_variable_string("1.2.3")
 
 
 def test_load_phenotypes_tsv_file():

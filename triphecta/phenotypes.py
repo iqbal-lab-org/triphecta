@@ -26,11 +26,11 @@ class Phenotypes:
             self.input_phenos_tsv
         )
         self.pheno_types, self.bool_pheno_types = Phenotypes._get_pheno_types(
-            self.phenos
+            self.pheno_types
         )
 
     @classmethod
-    def _convert_one_variable_string(cls, s):
+    def convert_one_variable_string(cls, s):
         try:
             return data_lookup[s.upper().strip()]
         except KeyError:
@@ -59,7 +59,7 @@ class Phenotypes:
                     )
 
                 phenos[row["sample"]] = {
-                    x: Phenotypes._convert_one_variable_string(row[x])
+                    x: Phenotypes.convert_one_variable_string(row[x])
                     for x in row
                     if x != "sample"
                 }

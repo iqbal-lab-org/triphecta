@@ -1,0 +1,11 @@
+sample	drug1	drug2	drug3	drug4	drug5
+sample_1	R	S	S	2	S
+sample_2	R	S	S	2	S
+sample_3	S	S	S	0.1	S
+sample_4	S	S	S	2	S
+sample_5	S	S	S	0.1	S
+sample_6	R	R	S	0.1	S
+sample_7	S	R	S	10	S
+sample_8	S	R	S	2	S
+sample_9	S	R	S	0.1	S
+sample_10	S	R	S	0.1	S

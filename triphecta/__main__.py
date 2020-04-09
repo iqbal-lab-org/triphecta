@@ -119,6 +119,64 @@ def main(args=None):
 
     subparser_distances.set_defaults(func=triphecta.tasks.distances.run)
 
+    # ------------------------ triples ----------------------------------------
+    subparser_triples = subparsers.add_parser(
+        "triples",
+        help="Find strain triples and report their variants etc",
+        usage="triphecta triples [options] <vcfs_tsv> <distances_file> <phenos_tsv> <pheno_constraints_json> <out>",
+        description="Find strain triples and report their variants etc",
+    )
+
+    subparser_triples.add_argument(
+        "vcfs_tsv",
+        help="Name of input data TSV file. Must have 'sample' and 'vcf_file' columns",
+    )
+
+    subparser_triples.add_argument(
+        "distances_file", help="Name of distances file, made by 'triphecta distances'"
+    )
+
+    subparser_triples.add_argument("phenos_tsv", help="Name of phenotypes TSV file")
+
+    subparser_triples.add_argument(
+        "pheno_constraints_json",
+        help="Name of phenotypes constraints file in JSON format",
+    )
+
+    subparser_triples.add_argument("out", help="Prefix of output files")
+
+    subparser_triples.add_argument(
+        "--wanted_pheno",
+        help="REQUIRED. Phenotype of interest and the value. eg: 'Drug_x,Resistant'. This option can be used more than once, and must be used at least once.",
+        action="append",
+        required=True,
+        metavar="Drug,value",
+    )
+
+    subparser_triples.add_argument(
+        "--mask_bed_file",
+        help="BED file of regions to ignore from all VCF files (tab-delimited, 3 columns: ref_name start end, coords 0-based and end coord not included)",
+        metavar="FILENAME",
+    )
+
+    subparser_triples.add_argument(
+        "--top_n_genos",
+        help="When finding triples, only consider closest n samples in terms of genetic distance [%(default)s]",
+        type=int,
+        metavar="INT",
+        default=10,
+    )
+
+    subparser_triples.add_argument(
+        "--max_pheno_diffs",
+        help="When finding triples, only consider samples with at most this many phenotype differences [%(default)s]",
+        type=int,
+        metavar="INT",
+        default=1,
+    )
+
+    subparser_triples.set_defaults(func=triphecta.tasks.triples.run)
+
     args = parser.parse_args()
     if args.triphenotops:
         triphecta.triphenotops.roar()
