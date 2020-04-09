@@ -49,8 +49,22 @@ def test_pipeline(caplog):
     options.het_to_hom_cutoff = None
     options.mask_bed_file = mask_bed_file
     options.vcf_ignore_filter_pass = True
+    options.matrix_file = "tmp.tasks.distances.matrix.tsv"
+    expect_matrix = os.path.join(data_dir, "distances.matrix.tsv")
+    subprocess.check_output("rm -f {options.matrix_file}", shell=True)
     tasks.distances.run(options)
+    filecmp.cmp(options.matrix_file, expect_matrix, shallow=False)
+    os.unlink(options.matrix_file)
     assert os.path.exists(distances_file)
+
+    # ----------------- distance_matrix ---------------------------------------
+    options = mock.Mock()
+    options.distances_file = distances_file
+    options.outfile = "tmp.tasks.distance_matrix.tsv"
+    subprocess.check_output("rm -f {options.outfile}", shell=True)
+    tasks.distance_matrix.run(options)
+    filecmp.cmp(options.outfile, expect_matrix, shallow=False)
+    os.unlink(options.outfile)
 
     # ----------------- triples -----------------------------------------------
     options = mock.Mock()

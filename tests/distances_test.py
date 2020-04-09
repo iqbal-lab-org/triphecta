@@ -1,6 +1,7 @@
+import filecmp
 import os
-
 import pytest
+import subprocess
 
 from triphecta import distances, vcf
 
@@ -140,3 +141,14 @@ def test_load_all_one_sample_distances_files():
     if os.path.exists(pickle_file):
         os.unlink(pickle_file)
     os.unlink(tmp_tsv)
+
+
+def test_write_distance_matrix_file():
+    tmp_out = "tmp.distances.write_distance_matrix_file.tsv"
+    subprocess.check_output(f"rm -f {tmp_out}", shell=True)
+    sample_names = ["sample1", "sample2", "sample3"]
+    dists = {(0, 1): 3, (0, 2): 4, (1, 2): 42}
+    distances.write_distance_matrix_file(sample_names, dists, tmp_out)
+    expect = os.path.join(data_dir, "write_distance_matrix_file.tsv")
+    assert filecmp.cmp(tmp_out, expect, shallow=False)
+    os.unlink(tmp_out)

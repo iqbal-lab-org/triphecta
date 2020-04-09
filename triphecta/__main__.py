@@ -83,6 +83,12 @@ def main(args=None):
     )
 
     subparser_distances.add_argument(
+        "--matrix_file",
+        help="Write distance matrix TSV file, can be read by eg dendropy",
+        metavar="FILENAME",
+    )
+
+    subparser_distances.add_argument(
         "--mask_bed_file",
         help="BED file of regions to ignore from all VCF files (tab-delimited, 3 columns: ref_name start end, coords 0-based and end coord not included)",
         metavar="FILENAME",
@@ -118,6 +124,24 @@ def main(args=None):
     )
 
     subparser_distances.set_defaults(func=triphecta.tasks.distances.run)
+
+    # --------------------- pheno_constraints_template ------------------------
+    subparser_distance_matrix = subparsers.add_parser(
+        "distance_matrix",
+        help="Make a template phenotype constraints file, for use with 'triphecta triples'",
+        usage="triphecta pheno_constraints_template <phenos.tsv> <out.json>",
+        description="Make a template phenotype constraints file, for use with 'triphecta triples'",
+    )
+
+    subparser_distance_matrix.add_argument(
+        "distances_file", help="Name of distances file made by 'triphecta distances'"
+    )
+
+    subparser_distance_matrix.add_argument(
+        "outfile", help="Name of output distance matrix TSV file"
+    )
+
+    subparser_distance_matrix.set_defaults(func=triphecta.tasks.distance_matrix.run)
 
     # --------------------- pheno_constraints_template ------------------------
     subparser_pheno_constraints_template = subparsers.add_parser(

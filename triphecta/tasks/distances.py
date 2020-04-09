@@ -6,7 +6,7 @@ def run(options):
         numeric_filters = utils.command_line_filter_list_to_dict(
             options.vcf_numeric_filter
         )
-        distances.pickle_distances_between_vcf_files(
+        sample_names, dists = distances.pickle_distances_between_vcf_files(
             options.filenames_tsv,
             options.outfile,
             threads=options.threads,
@@ -17,6 +17,9 @@ def run(options):
             mask_bed_file=options.mask_bed_file,
         )
     else:
-        distances.pickle_load_all_one_sample_distances_files(
+        sample_names, dists = distances.pickle_load_all_one_sample_distances_files(
             options.filenames_tsv, options.outfile, threads=options.threads
         )
+
+    if options.matrix_file is not None:
+        distances.write_distance_matrix_file(sample_names, dists, options.matrix_file)
