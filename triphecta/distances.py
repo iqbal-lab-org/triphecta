@@ -105,7 +105,7 @@ def _load_one_sample_distances_file(filename):
     expect_cols = {"sample", "distance"}
     distances = []
 
-    with open(filename) as f:
+    with utils.open_file(filename) as f:
         reader = csv.DictReader(f, delimiter="\t")
         if not expect_cols.issubset(set(reader.fieldnames)):
             raise RuntimeError(
@@ -138,7 +138,7 @@ def _load_sample_distances_file_of_filenames(infile):
     sample_names = []
     distance_files = []
     expect_cols = {"sample", "distance_file"}
-    with open(infile) as f:
+    with utils.open_file(infile) as f:
         reader = csv.DictReader(f, delimiter="\t")
         if not expect_cols.issubset(set(reader.fieldnames)):
             raise RuntimeError(
@@ -194,7 +194,7 @@ def load_from_pickle(pickle_file):
 
 
 def write_distance_matrix_file(sample_names, distance_matrix, outfile):
-    with open(outfile, "w") as f:
+    with utils.open_file(outfile, "w") as f:
         print("", *sample_names, sep="\t", file=f)
         for i, sample in enumerate(sample_names):
             out = []

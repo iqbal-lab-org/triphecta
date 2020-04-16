@@ -2,6 +2,8 @@ import csv
 import json
 import logging
 
+from triphecta import utils
+
 data_lookup = {
     "NA": None,
     ".": None,
@@ -45,7 +47,7 @@ class Phenotypes:
     def _load_phenotypes_tsv_file(cls, infile):
         phenos = {}
 
-        with open(infile) as f:
+        with utils.open_file(infile) as f:
             reader = csv.DictReader(f, delimiter="\t")
             if "sample" not in reader.fieldnames:
                 raise RuntimeError(
@@ -105,7 +107,7 @@ class Phenotypes:
             else:
                 raise TypeError
 
-        with open(outfile, "w") as f:
+        with utils.open_file(outfile, "w") as f:
             json.dump(constraints, f, sort_keys=True, indent=2)
 
     def __getitem__(self, sample):
