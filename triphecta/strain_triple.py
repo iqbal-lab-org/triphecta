@@ -1,6 +1,6 @@
 import logging
 
-from triphecta import vcf
+from triphecta import utils, vcf
 
 
 class StrainTriple:
@@ -73,7 +73,7 @@ class StrainTriple:
             return "/".join(sorted([str(x) for x in geno]))
 
     def write_variants_of_interest_file(self, filename, vcf_records_to_mask=None):
-        with open(filename, "w") as f:
+        with utils.open_file(filename, "w") as f:
             print(
                 "variant_id",
                 "in_mask",

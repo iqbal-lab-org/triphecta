@@ -5,6 +5,8 @@ import multiprocessing
 
 import numpy as np
 
+from triphecta import utils
+
 Variant = collections.namedtuple("Variant", ["CHROM", "POS", "REF", "ALTS"])
 VariantCounts = collections.namedtuple(
     "VariantCounts", ["het", "hom", "null", "het_to_hom"]
@@ -42,7 +44,7 @@ def vcf_line_to_variant_and_gt(line):
 
 
 def load_variant_calls_from_vcf_file(infile, expected_variants=None):
-    with open(infile) as f:
+    with utils.open_file(infile) as f:
         sample_name = None
         calls = []
         checking_variants = True
@@ -100,7 +102,7 @@ def _convert_het_to_hom(genos, info_dict, key, cutoff):
 
 def _bed_mask_file_to_dict(bed_file):
     mask = {}
-    with open(bed_file) as f:
+    with utils.open_file(bed_file) as f:
         for line in f:
             chrom, start, end = line.rstrip().split("\t")
             if chrom not in mask:
@@ -118,7 +120,7 @@ def vcf_to_variant_positions_to_mask_from_bed_file(vcf_file, bed_file):
     current_mask_chrom = None
     current_mask_index = None
     vcf_records_to_mask = {}
-    with open(vcf_file) as f:
+    with utils.open_file(vcf_file) as f:
         for line in f:
             if line.startswith("#"):
                 continue
@@ -174,7 +176,7 @@ def load_vcf_file_for_distance_calc(
     data = []
     variant_counts = {"hom": 0, "het": 0, "null": 0, "het_to_hom": 0}
 
-    with open(infile) as f:
+    with utils.open_file(infile) as f:
         for line in f:
             if line.startswith("#"):
                 continue
@@ -264,7 +266,7 @@ def sample_name_from_vcf(infile):
     """Gets sample name from VCF (in its #CHROM... line).
     Assumes the VCF file only conatins one sample"""
     logging.debug(f"Getting sample name from VCF file {infile}")
-    with open(infile) as f:
+    with utils.open_file(infile) as f:
         for line in f:
             if line.startswith("#CHROM"):
                 name = line.rstrip().split("\t")[-1]
@@ -277,7 +279,7 @@ def sample_name_from_vcf(infile):
 def sample_names_tsv_from_vcf_file_of_filenames(infile, outfile, threads=1):
     """Input is a file of VCF file names, one name per line.
     Writes a TSV file with columns sample_name, vcf_file"""
-    with open(infile) as f:
+    with utils.open_file(infile) as f:
         vcf_files = [x.rstrip() for x in f.readlines()]
 
     logging.debug(
@@ -288,7 +290,7 @@ def sample_names_tsv_from_vcf_file_of_filenames(infile, outfile, threads=1):
 
     assert len(vcf_files) == len(sample_names)
     logging.debug(f"Writing sample/vcf TSV file {outfile}")
-    with open(outfile, "w") as f:
+    with utils.open_file(outfile, "w") as f:
         print("sample", "vcf_file", sep="\t", file=f)
         for sample, vcf_file in zip(sample_names, vcf_files):
             print(sample, vcf_file, sep="\t", file=f)

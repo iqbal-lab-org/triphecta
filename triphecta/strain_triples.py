@@ -1,7 +1,7 @@
 import logging
 import os
 
-from triphecta import phenotypes, sample_neighbours_finding, strain_triple, vcf
+from triphecta import phenotypes, sample_neighbours_finding, strain_triple, utils, vcf
 
 
 class StrainTriples:
@@ -65,7 +65,7 @@ class StrainTriples:
 
     @classmethod
     def _write_triples_names_file(cls, triples, outfile):
-        with open(outfile, "w") as f:
+        with utils.open_file(outfile, "w") as f:
             print(
                 "triple_id",
                 "case",
@@ -94,7 +94,7 @@ class StrainTriples:
 
     @classmethod
     def _write_variants_summary_file(cls, triples, outfile, vcf_records_to_mask=None):
-        with open(outfile, "w") as f:
+        with utils.open_file(outfile, "w") as f:
             print(
                 "variant_id",
                 "in_mask",

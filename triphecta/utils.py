@@ -1,12 +1,37 @@
+from contextlib import contextmanager
 import csv
+import gzip
 import os
 
 from triphecta import phenotypes
 
 
+@contextmanager
+def open_file(filename, mode="r"):
+    if filename.endswith(".gz"):
+        try:
+            f = gzip.open(filename, f"{mode}t", compresslevel=9)
+        except:
+            raise OSError(
+                f"Error opening gzip file '{filename}' in mode '{mode}'. Cannot continue"
+            )
+    elif filename.endswith(".bcf"):
+        raise NotImplementedError(f"Opening BCF files is not implemented")
+    else:
+        try:
+            f = open(filename, mode)
+        except:
+            raise OSError(
+                f"Error opening file '{filename}' in mode '{mode}'. Cannot continue"
+            )
+
+    yield f
+    f.close()
+
+
 def load_file_of_vcf_filenames(filename, check_vcf_files_exist=True):
     data = {}
-    with open(filename) as f:
+    with open_file(filename) as f:
         reader = csv.DictReader(f, delimiter="\t")
         expect_cols = {"sample", "vcf_file"}
         if not expect_cols.issubset(set(reader.fieldnames)):
