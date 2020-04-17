@@ -62,6 +62,18 @@ def test_pipeline(caplog):
     assert got_names == expect_names
     assert got_distances == expect_distances
 
+    # ----------------- tree --------------------------------------------------
+    options = mock.Mock()
+    options.distance_matrix = dist_matrix_file
+    options.out = "tmp.tree.out"
+
+    for method in "nj", "upgma":
+        utils.rm_rf(options.out)
+        options.method = method
+        tasks.tree.run(options)
+        assert os.path.exists(options.out)
+        os.unlink(options.out)
+
     # ----------------- triples -----------------------------------------------
     options = mock.Mock()
     options.vcfs_tsv = vcf_names_file

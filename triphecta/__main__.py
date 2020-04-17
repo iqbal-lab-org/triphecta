@@ -122,6 +122,26 @@ def main(args=None):
 
     subparser_distance_matrix.set_defaults(func=triphecta.tasks.distance_matrix.run)
 
+    # ------------------------------ tree -------------------------------------
+    subparser_tree = subparsers.add_parser(
+        "tree",
+        help="Make a tree from distance matrix",
+        usage="triphecta tree <nj|upgma> <distance_matrix> <out>",
+        description="Make a tree from distance matrix",
+    )
+
+    subparser_tree.add_argument(
+        "method", choices=["nj", "upgma"], help="Method to use, either nj or upgma"
+    )
+
+    subparser_tree.add_argument(
+        "distance_matrix", help="Distance matrix file made by distance_matrix"
+    )
+
+    subparser_tree.add_argument("out", help="Name of output file")
+
+    subparser_tree.set_defaults(func=triphecta.tasks.tree.run)
+
     # --------------------- pheno_constraints_template ------------------------
     subparser_pheno_constraints_template = subparsers.add_parser(
         "pheno_constraints_template",
