@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-from triphecta import vcf
+from triphecta import variant_counts, vcf
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(this_dir, "data", "vcf")
@@ -129,14 +129,14 @@ def test_load_vcf_file_for_distance_calc():
     got_genos, got_counts = vcf.load_vcf_file_for_distance_calc(infile)
     expect_genos = np.array([0, 2, 2, 3, 4], dtype=np.uint16)
     np.testing.assert_array_equal(got_genos, expect_genos)
-    expect_counts = vcf.VariantCounts(het=0, hom=3, null=1, het_to_hom=1)
+    expect_counts = variant_counts.VariantCounts(het=0, hom=3, null=1, het_to_hom=1)
     assert got_counts == expect_counts
 
     mask = {"ref_42": {10}}
     got_genos, got_counts = vcf.load_vcf_file_for_distance_calc(infile, mask=mask)
     expect_genos = np.array([2, 2, 3, 4], dtype=np.uint16)
     np.testing.assert_array_equal(got_genos, expect_genos)
-    expect_counts = vcf.VariantCounts(het=0, hom=3, null=0, het_to_hom=1)
+    expect_counts = variant_counts.VariantCounts(het=0, hom=3, null=0, het_to_hom=1)
     assert got_counts == expect_counts
 
     got_genos, got_counts = vcf.load_vcf_file_for_distance_calc(
@@ -144,7 +144,7 @@ def test_load_vcf_file_for_distance_calc():
     )
     expect_genos = np.array([1, 0, 2, 3, 4], dtype=np.uint16)
     np.testing.assert_array_equal(got_genos, expect_genos)
-    expect_counts = vcf.VariantCounts(het=1, hom=4, null=0, het_to_hom=0)
+    expect_counts = variant_counts.VariantCounts(het=1, hom=4, null=0, het_to_hom=0)
     assert got_counts == expect_counts
 
     got_genos, got_counts = vcf.load_vcf_file_for_distance_calc(
@@ -155,7 +155,7 @@ def test_load_vcf_file_for_distance_calc():
     )
     expect_genos = np.array([1, 0, 0, 0, 4], dtype=np.uint16)
     np.testing.assert_array_equal(got_genos, expect_genos)
-    expect_counts = vcf.VariantCounts(het=1, hom=2, null=2, het_to_hom=0)
+    expect_counts = variant_counts.VariantCounts(het=1, hom=2, null=2, het_to_hom=0)
     assert got_counts == expect_counts
 
 
@@ -177,11 +177,11 @@ def test_load_vcf_files_for_distance_calc():
     expect = [
         (
             np.array([0, 0, 2, 3, 4], dtype=np.uint16),
-            vcf.VariantCounts(het=1, hom=3, null=1, het_to_hom=0),
+            variant_counts.VariantCounts(het=1, hom=3, null=1, het_to_hom=0),
         ),
         (
             np.array([0, 2, 2, 0, 2], dtype=np.uint16),
-            vcf.VariantCounts(het=0, hom=3, null=2, het_to_hom=0),
+            variant_counts.VariantCounts(het=0, hom=3, null=2, het_to_hom=0),
         ),
     ]
     check_got_equal_expect(got, expect)
@@ -192,11 +192,11 @@ def test_load_vcf_files_for_distance_calc():
     expect = [
         (
             np.array([1, 0, 2, 3, 4], dtype=np.uint16),
-            vcf.VariantCounts(het=1, hom=4, null=0, het_to_hom=0),
+            variant_counts.VariantCounts(het=1, hom=4, null=0, het_to_hom=0),
         ),
         (
             np.array([1, 2, 2, 3, 2], dtype=np.uint16),
-            vcf.VariantCounts(het=0, hom=5, null=0, het_to_hom=0),
+            variant_counts.VariantCounts(het=0, hom=5, null=0, het_to_hom=0),
         ),
     ]
     check_got_equal_expect(got, expect)
@@ -214,11 +214,11 @@ def test_load_vcf_files_for_distance_calc():
     expect = [
         (
             np.array([0, 0, 0, 4], dtype=np.uint16),
-            vcf.VariantCounts(het=1, hom=1, null=2, het_to_hom=0),
+            variant_counts.VariantCounts(het=1, hom=1, null=2, het_to_hom=0),
         ),
         (
             np.array([2, 2, 0, 2], dtype=np.uint16),
-            vcf.VariantCounts(het=0, hom=3, null=1, het_to_hom=0),
+            variant_counts.VariantCounts(het=0, hom=3, null=1, het_to_hom=0),
         ),
     ]
     check_got_equal_expect(got, expect)

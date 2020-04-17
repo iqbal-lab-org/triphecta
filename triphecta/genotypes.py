@@ -1,26 +1,32 @@
 import collections
 import os
 
-from triphecta import distances, utils
+from triphecta import distances, utils, variant_counts
 
 
 class Genotypes:
     def __init__(
         self,
         file_of_vcf_filenames=None,
-        distances_pickle_file=None,
+        distance_matrix_file=None,
+        variant_counts_file=None,
         check_vcf_files_exist=True,
         testing=False,
     ):
-        self.distances_pickle_file = (
+        self.distance_matrix_file = (
             None
-            if distances_pickle_file is None
-            else os.path.abspath(distances_pickle_file)
+            if distance_matrix_file is None
+            else os.path.abspath(distance_matrix_file)
         )
         self.file_of_vcf_filenames = (
             None
             if file_of_vcf_filenames is None
             else os.path.abspath(file_of_vcf_filenames)
+        )
+        self.variant_counts_file = (
+            None
+            if variant_counts_file is None
+            else os.path.abspath(variant_counts_file)
         )
         self.check_vcf_files_exist = check_vcf_files_exist
 
@@ -49,11 +55,16 @@ class Genotypes:
                 check_vcf_files_exist=self.check_vcf_files_exist,
             )
 
-        if self.distances_pickle_file is None:
-            raise RuntimeError("Must provide distances file")
+        if self.distance_matrix_file is None:
+            raise RuntimeError("Must provide distance matrix file")
         else:
-            self.sample_names_list, self.distances, self.vcf_variant_counts = distances.load_from_pickle(
-                self.distances_pickle_file
+            self.sample_names_list, self.distances = distances.load_distance_matrix_file(
+                self.distance_matrix_file
+            )
+
+        if self.variant_counts_file is not None:
+            self.vcf_variant_counts = variant_counts.load_variant_count_list_from_tsv(
+                self.variant_counts_file
             )
 
     def distance(self, sample1, sample2):

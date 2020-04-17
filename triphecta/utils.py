@@ -2,8 +2,14 @@ from contextlib import contextmanager
 import csv
 import gzip
 import os
+import subprocess
 
 from triphecta import phenotypes
+
+
+def rm_rf(*paths):
+    for path in paths:
+        subprocess.check_output(f"rm -rf {path}", shell=True)
 
 
 @contextmanager

@@ -1,0 +1,4 @@
+sample	vcf_file
+s1	tests/data/distances/distances_between_vcf_files.1.vcf
+s2	tests/data/distances/distances_between_vcf_files.2.vcf
+s3	tests/data/distances/distances_between_vcf_files.3.vcf

@@ -7,7 +7,8 @@ from triphecta import genotypes, phenotype_compare, phenotypes, strain_triples, 
 def run(options):
     genos = genotypes.Genotypes(
         file_of_vcf_filenames=options.vcfs_tsv,
-        distances_pickle_file=options.distances_file,
+        distance_matrix_file=options.distance_matrix,
+        variant_counts_file=options.var_counts_file,
     )
 
     phenos = phenotypes.Phenotypes(options.phenos_tsv)
@@ -32,4 +33,4 @@ def run(options):
         top_n_genos=options.top_n_genos,
         max_pheno_diffs=options.max_pheno_diffs,
     )
-    triples.run_analysis(wanted_phenos, options.out, mask_file=options.mask_file)
+    triples.run_analysis(wanted_phenos, options.out, mask_file=options.mask_bed_file)

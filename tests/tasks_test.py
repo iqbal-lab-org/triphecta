@@ -5,7 +5,7 @@ import pytest
 import subprocess
 from unittest import mock
 
-from triphecta import tasks
+from triphecta import distances, tasks, utils
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(this_dir, "data", "tasks")
@@ -15,7 +15,7 @@ def test_pheno_constraints_template():
     options = mock.Mock()
     options.phenos_tsv = os.path.join(data_dir, "pheno_constraints_template.tsv")
     options.json_out = "tmp.tasks.pheno_constraints_template.json"
-    subprocess.check_output(f"rm -f {options.json_out}", shell=True)
+    utils.rm_rf(options.json_out)
     tasks.pheno_constraints_template.run(options)
     expect_file = os.path.join(data_dir, "pheno_constraints_template.json")
     assert filecmp.cmp(options.json_out, expect_file)
@@ -26,8 +26,10 @@ def test_pipeline(caplog):
     caplog.set_level(logging.INFO)
     vcf_names_file = "tmp.tasks.vcfs_to_names.tsv"
     mask_bed_file = os.path.join(data_dir, "mask.bed")
-    distances_file = "tmp.distances.pickle"
-    subprocess.check_output(f"rm -rf {vcf_names_file} {distances_file}", shell=True)
+    distance_matrix_prefix = "tmp.distance_matrix"
+    dist_matrix_file = f"{distance_matrix_prefix}.distance_matrix.tsv.gz"
+    variant_counts_file = f"{distance_matrix_prefix}.variant_counts.tsv.gz"
+    utils.rm_rf(vcf_names_file, dist_matrix_file, variant_counts_file)
 
     # ------------------ vcfs_to_names ----------------------------------------
     options = mock.Mock()
@@ -38,10 +40,10 @@ def test_pipeline(caplog):
     expect = os.path.join(data_dir, "vcfs_to_names.expect.tsv")
     assert filecmp.cmp(options.out_tsv, expect, shallow=False)
 
-    # ------------------ distances --------------------------------------------
+    # ----------------- distance_matrix ---------------------------------------
     options = mock.Mock()
     options.method = "vcf"
-    options.outfile = distances_file
+    options.out = distance_matrix_prefix
     options.filenames_tsv = vcf_names_file
     options.threads = 1
     options.vcf_numeric_filter = None
@@ -49,35 +51,30 @@ def test_pipeline(caplog):
     options.het_to_hom_cutoff = None
     options.mask_bed_file = mask_bed_file
     options.vcf_ignore_filter_pass = True
-    options.matrix_file = "tmp.tasks.distances.matrix.tsv"
-    expect_matrix = os.path.join(data_dir, "distances.matrix.tsv")
-    subprocess.check_output("rm -f {options.matrix_file}", shell=True)
-    tasks.distances.run(options)
-    filecmp.cmp(options.matrix_file, expect_matrix, shallow=False)
-    os.unlink(options.matrix_file)
-    assert os.path.exists(distances_file)
-
-    # ----------------- distance_matrix ---------------------------------------
-    options = mock.Mock()
-    options.distances_file = distances_file
-    options.outfile = "tmp.tasks.distance_matrix.tsv"
-    subprocess.check_output("rm -f {options.outfile}", shell=True)
+    expect_matrix_file = os.path.join(data_dir, "distance_matrix.tsv")
+    expect_names, expect_distances = distances.load_distance_matrix_file(
+        expect_matrix_file
+    )
     tasks.distance_matrix.run(options)
-    filecmp.cmp(options.outfile, expect_matrix, shallow=False)
-    os.unlink(options.outfile)
+    assert os.path.exists(dist_matrix_file)
+    assert os.path.exists(variant_counts_file)
+    got_names, got_distances = distances.load_distance_matrix_file(dist_matrix_file)
+    assert got_names == expect_names
+    assert got_distances == expect_distances
 
     # ----------------- triples -----------------------------------------------
     options = mock.Mock()
     options.vcfs_tsv = vcf_names_file
-    options.distances_file = distances_file
+    options.distance_matrix = dist_matrix_file
+    options.var_counts_file = variant_counts_file
     options.phenos_tsv = os.path.join(data_dir, "phenos.tsv")
     options.pheno_constraints_json = os.path.join(data_dir, "pheno_constraint.json")
     options.out = "tmp.tasks.triples.out"
-    subprocess.check_output(f"rm -rf {options.out}.*", shell=True)
+    utils.rm_rf("{options.out}.*")
     options.wanted_pheno = ["drug1,R"]
     options.top_n_genos = 5
     options.max_pheno_diffs = 1
-    options.mask_file = mask_bed_file
+    options.mask_bed_file = mask_bed_file
     tasks.triples.run(options)
 
     got_triple_ids_tsv = f"{options.out}.triple_ids.tsv"
@@ -96,5 +93,6 @@ def test_pipeline(caplog):
         assert filecmp.cmp(got_tsv, expect_tsv, shallow=False)
 
     os.unlink(vcf_names_file)
-    os.unlink(distances_file)
+    os.unlink(dist_matrix_file)
+    os.unlink(variant_counts_file)
     subprocess.check_output(f"rm -r {options.out}.triples", shell=True)

@@ -34,7 +34,7 @@ def main(args=None):
         "vcfs_to_names",
         help="Get sample names from VCF files",
         usage="triphecta vcfs_to_names [options] <file_of_vcf_filenames> <out.tsv>",
-        description="Gets sample names from VCF files, makes TSV file for input to triphecta distances vcf",
+        description="Gets sample names from VCF files, makes TSV file for input to triphecta 'distance_matrix vcf' and to 'triples'",
     )
 
     subparser_vcfs_to_names.add_argument(
@@ -53,28 +53,31 @@ def main(args=None):
 
     subparser_vcfs_to_names.set_defaults(func=triphecta.tasks.vcfs_to_names.run)
 
-    # ------------------------ distances --------------------------------------
-    subparser_distances = subparsers.add_parser(
-        "distances",
+    # ----------------------- distance_matrix ---------------------------------
+    subparser_distance_matrix = subparsers.add_parser(
+        "distance_matrix",
         help="Process genomic distance information",
-        usage="triphecta distances <vcf|premade> <data_tsv> <outfile>",
-        description="Calculates distance between genomes using VCF files, or loads pre-made distances. Saves data as binary file for use with other triphecta tasks",
+        usage="triphecta distance_matrix [options] <vcf|premade> <filenames_tsv> <out>",
+        description="Calculates distance between genomes using VCF files, or loads pre-made distances. Saves distance matrix in TSV format",
     )
 
-    subparser_distances.add_argument(
+    subparser_distance_matrix.add_argument(
         "method",
         choices=["vcf", "premade"],
         help="Method to use. Either calculate from VCF files, or use pre-made distances",
     )
 
-    subparser_distances.add_argument(
+    subparser_distance_matrix.add_argument(
         "filenames_tsv",
         help="Name of input data TSV file. Must have 'sample' column, and either 'vcf_file' or 'distance_file' column, depending on method",
     )
 
-    subparser_distances.add_argument("outfile", help="Name of output file")
+    subparser_distance_matrix.add_argument(
+        "out",
+        help="If method=vcf, prefix of output files. If method=premade, name of single output file",
+    )
 
-    subparser_distances.add_argument(
+    subparser_distance_matrix.add_argument(
         "--threads",
         type=int,
         help="Number of threads to use [%(default)s]",
@@ -82,25 +85,19 @@ def main(args=None):
         metavar="INT",
     )
 
-    subparser_distances.add_argument(
-        "--matrix_file",
-        help="Write distance matrix TSV file, can be read by eg dendropy",
-        metavar="FILENAME",
-    )
-
-    subparser_distances.add_argument(
+    subparser_distance_matrix.add_argument(
         "--mask_bed_file",
         help="BED file of regions to ignore from all VCF files (tab-delimited, 3 columns: ref_name start end, coords 0-based and end coord not included)",
         metavar="FILENAME",
     )
 
-    subparser_distances.add_argument(
+    subparser_distance_matrix.add_argument(
         "--vcf_ignore_filter_pass",
         action="store_true",
         help="By default, only use VCF records with PASS in the FILTER column, and count all others as a null genotype. Using this flag ignores the filter column, effectively treating every line of the VCF as if it has PASS",
     )
 
-    subparser_distances.add_argument(
+    subparser_distance_matrix.add_argument(
         "--vcf_numeric_filter",
         "-x",
         action="append",
@@ -109,36 +106,18 @@ def main(args=None):
         metavar="STRING",
     )
 
-    subparser_distances.add_argument(
+    subparser_distance_matrix.add_argument(
         "--het_to_hom_key",
         help="Using this means trying to convert heterozygous calls to homozygous, instead of ignoring them. Use this option to provide the Key to use for allele depths in VCF. It is expected that the corresponding value should be a comma-separated list of allele depths (eg DP4). See also --het_to_hom_cutoff",
         metavar="STRING",
     )
 
-    subparser_distances.add_argument(
+    subparser_distance_matrix.add_argument(
         "--het_to_hom_cutoff",
         type=float,
         help="Only used if --het_to_hom_key is used. --het_to_hom_cutoff X means that a heterozygous call is converted to homozygous for the first allele A found satisfying X <= (100 * depth of A) / (total depth). Otherwise, call is still counted as heterozygous. [%(default)s]",
         default=90.0,
         metavar="FLOAT",
-    )
-
-    subparser_distances.set_defaults(func=triphecta.tasks.distances.run)
-
-    # --------------------- pheno_constraints_template ------------------------
-    subparser_distance_matrix = subparsers.add_parser(
-        "distance_matrix",
-        help="Make a template phenotype constraints file, for use with 'triphecta triples'",
-        usage="triphecta pheno_constraints_template <phenos.tsv> <out.json>",
-        description="Make a template phenotype constraints file, for use with 'triphecta triples'",
-    )
-
-    subparser_distance_matrix.add_argument(
-        "distances_file", help="Name of distances file made by 'triphecta distances'"
-    )
-
-    subparser_distance_matrix.add_argument(
-        "outfile", help="Name of output distance matrix TSV file"
     )
 
     subparser_distance_matrix.set_defaults(func=triphecta.tasks.distance_matrix.run)
@@ -167,7 +146,7 @@ def main(args=None):
     subparser_triples = subparsers.add_parser(
         "triples",
         help="Find strain triples and report their variants etc",
-        usage="triphecta triples [options] <vcfs_tsv> <distances_file> <phenos_tsv> <pheno_constraints_json> <out>",
+        usage="triphecta triples [options] <vcfs_tsv> <distance_matrix> <phenos_tsv> <pheno_constraints_json> <out>",
         description="Find strain triples and report their variants etc",
     )
 
@@ -177,7 +156,8 @@ def main(args=None):
     )
 
     subparser_triples.add_argument(
-        "distances_file", help="Name of distances file, made by 'triphecta distances'"
+        "distance_matrix",
+        help="Name of distance matrix file, made by 'triphecta distance_matrix'",
     )
 
     subparser_triples.add_argument("phenos_tsv", help="Name of phenotypes TSV file")
@@ -195,6 +175,12 @@ def main(args=None):
         action="append",
         required=True,
         metavar="Drug,value",
+    )
+
+    subparser_triples.add_argument(
+        "--var_counts_file",
+        help="Variant counts file *.variant_counts.tsv.gz made by 'triphecta distance_matrix' if method was 'vcf'",
+        metavar="FILENAME",
     )
 
     subparser_triples.add_argument(

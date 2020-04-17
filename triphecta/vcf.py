@@ -5,12 +5,9 @@ import multiprocessing
 
 import numpy as np
 
-from triphecta import utils
+from triphecta import utils, variant_counts
 
 Variant = collections.namedtuple("Variant", ["CHROM", "POS", "REF", "ALTS"])
-VariantCounts = collections.namedtuple(
-    "VariantCounts", ["het", "hom", "null", "het_to_hom"]
-)
 
 
 def vcf_line_to_variant_and_gt(line):
@@ -174,7 +171,7 @@ def load_vcf_file_for_distance_calc(
         numeric_filters = {}
 
     data = []
-    variant_counts = {"hom": 0, "het": 0, "null": 0, "het_to_hom": 0}
+    var_counts = {"hom": 0, "het": 0, "null": 0, "het_to_hom": 0}
 
     with utils.open_file(infile) as f:
         for line in f:
@@ -186,7 +183,7 @@ def load_vcf_file_for_distance_calc(
                 continue
 
             if only_use_pass and fields[6] != "PASS":
-                variant_counts["null"] += 1
+                var_counts["null"] += 1
                 data.append(0)
                 continue
 
@@ -209,24 +206,24 @@ def load_vcf_file_for_distance_calc(
 
             if fail_filter or "." in genos:
                 data.append(0)
-                variant_counts["null"] += 1
+                var_counts["null"] += 1
             elif len(genos) > 1:
                 hom_allele = _convert_het_to_hom(
                     genos, info, het_to_hom_key, het_to_hom_min_pc_depth
                 )
                 if hom_allele is None:
-                    variant_counts["het"] += 1
+                    var_counts["het"] += 1
                     data.append(0)
                 else:
-                    variant_counts["het_to_hom"] += 1
+                    var_counts["het_to_hom"] += 1
                     data.append(hom_allele + 1)
             else:
-                variant_counts["hom"] += 1
+                var_counts["hom"] += 1
                 data.append(int(genos.pop()) + 1)
 
     logging.debug(f"loaded {infile}")
-    variant_counts = VariantCounts(**variant_counts)
-    return np.array(data, dtype=np.uint16), variant_counts
+    var_counts = variant_counts.VariantCounts(**var_counts)
+    return np.array(data, dtype=np.uint16), var_counts
 
 
 def load_vcf_files_for_distance_calc(

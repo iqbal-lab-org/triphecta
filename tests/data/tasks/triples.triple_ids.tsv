@@ -1,4 +1,4 @@
 triple_id	case	control1	geno_dist1	pheno_dist1	control2	geno_dist2	pheno_dist2
-1	sample_1	sample_3	2	1	sample_4	3	0
-2	sample_2	sample_4	1	0	sample_3	2	1
-3	sample_6	sample_9	1	0	sample_7	1	1
+1	sample_1	sample_3	2.0	1	sample_4	3.0	0
+2	sample_2	sample_4	1.0	0	sample_3	2.0	1
+3	sample_6	sample_9	1.0	0	sample_7	1.0	1

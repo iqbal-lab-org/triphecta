@@ -2,11 +2,10 @@ import csv
 import itertools
 import logging
 import multiprocessing
-import pickle
 
 import numpy as np
 
-from triphecta import utils, vcf
+from triphecta import utils, variant_counts, vcf
 
 global vcf_data
 
@@ -25,7 +24,8 @@ def _dist_two_samples2(i, j):
 
 
 def distances_between_vcf_files(
-    filenames,
+    vcf_names_tsv,
+    outprefix,
     threads=1,
     only_use_pass=True,
     numeric_filters=None,
@@ -33,14 +33,16 @@ def distances_between_vcf_files(
     het_to_hom_min_pc_depth=90.0,
     mask_bed_file=None,
 ):
-    # filenames = dict of sample -> VCF file
-    global vcf_data
-    sample_names = []
-    vcf_files = []
-    for sample_name, vcf_file in sorted(filenames.items()):
-        sample_names.append(sample_name)
-        vcf_files.append(vcf_file)
+    logging.info(f"Loading file of VCF filenames {vcf_names_tsv}")
+    filenames = utils.load_file_of_vcf_filenames(
+        vcf_names_tsv, check_vcf_files_exist=False
+    )
+    sample_names, vcf_files = zip(*sorted(filenames.items()))
+    sample_names = list(sample_names)
+    logging.info(f"Found {len(filenames)} VCF files to load")
+    logging.info("Getting genotypes from VCF files")
 
+    global vcf_data
     vcf_data = vcf.load_vcf_files_for_distance_calc(
         vcf_files,
         threads=threads,
@@ -50,7 +52,6 @@ def distances_between_vcf_files(
         het_to_hom_min_pc_depth=het_to_hom_min_pc_depth,
         mask_bed_file=mask_bed_file,
     )
-
     logging.info("Finished loading genotypes. Calculating distance matrix")
 
     with multiprocessing.Pool(processes=threads) as p:
@@ -58,45 +59,19 @@ def distances_between_vcf_files(
             _dist_two_samples2, itertools.combinations(range(len(vcf_files)), 2)
         )
 
-    variant_counts = [x[1] for x in vcf_data]
+    var_counts = [x[1] for x in vcf_data]
     dists = {}
-
     for i, j, dist in distance_list:
         dists[tuple(sorted([i, j]))] = dist
 
-    return sample_names, dists, variant_counts
-
-
-def pickle_distances_between_vcf_files(
-    file_of_vcf_filenames,
-    pickle_out,
-    threads=1,
-    only_use_pass=True,
-    numeric_filters=None,
-    het_to_hom_key="COV",
-    het_to_hom_min_pc_depth=90.0,
-    mask_bed_file=None,
-):
-    logging.info(f"Start loading file of VCF filenames {file_of_vcf_filenames}")
-    vcf_files = utils.load_file_of_vcf_filenames(
-        file_of_vcf_filenames, check_vcf_files_exist=False
-    )
-    logging.info(f"Found {len(vcf_files)} VCF files to load")
-    logging.info("Getting genotypes from VCF files")
-    sample_names, dists, variant_counts = distances_between_vcf_files(
-        vcf_files,
-        threads=threads,
-        only_use_pass=True,
-        numeric_filters=None,
-        het_to_hom_key=het_to_hom_key,
-        het_to_hom_min_pc_depth=het_to_hom_min_pc_depth,
-        mask_bed_file=mask_bed_file,
-    )
-    logging.info(f"Finished distance calulations. Writing data to file {pickle_out}")
-    with open(pickle_out, "wb") as f:
-        pickle.dump((sample_names, dists, variant_counts), f)
-    logging.info(f"Finished writing data to file {pickle_out}")
-    return sample_names, dists
+    logging.info("Finished calculating distance matrix")
+    matrix_file = f"{outprefix}.distance_matrix.tsv.gz"
+    write_distance_matrix_file(sample_names, dists, matrix_file)
+    logging.info(f"Saved distance matrix to file {matrix_file}")
+    var_counts_file = f"{outprefix}.variant_counts.tsv.gz"
+    variant_counts.save_variant_count_list_to_tsv(var_counts, var_counts_file)
+    logging.info(f"Saved variant counts file {variant_counts}")
+    return sample_names, dists, var_counts
 
 
 def _load_one_sample_distances_file(filename):
@@ -120,7 +95,7 @@ def _load_one_sample_distances_file(filename):
 def _update_distances_for_one_sample(
     sample_index, new_distances, all_distances, sample_name_to_index
 ):
-    """Updates all distance data in dictionary all_dsitnaces.
+    """Updates all distance data in dictionary all_distances.
     new_distances=list of tuples, made by _load_one_sample_distances_file"""
     for other_sample, distance in new_distances:
         other_index = sample_name_to_index[other_sample]
@@ -151,10 +126,13 @@ def _load_sample_distances_file_of_filenames(infile):
     return sample_names, distance_files
 
 
-def load_all_one_sample_distances_files(file_of_filenames, threads=1):
+def distances_from_all_one_sample_distances_files(
+    file_of_filenames, outfile, threads=1
+):
     """Loads data from all per sample distances files.
     filenames = dict of sample name -> distance file name.
-    <threads> files in parallel"""
+    <threads> files in parallel. Writes ditance matrix to outfile, returns
+    tuple: sample names list, distances dictionary"""
     sample_names, distance_files = _load_sample_distances_file_of_filenames(
         file_of_filenames
     )
@@ -174,23 +152,8 @@ def load_all_one_sample_distances_files(file_of_filenames, threads=1):
                 sample_index, new_distances, all_distances, sample_name_to_index
             )
 
+    write_distance_matrix_file(sample_names, all_distances, outfile)
     return sample_names, all_distances
-
-
-def pickle_load_all_one_sample_distances_files(
-    file_of_filenames, pickle_out, threads=1
-):
-    names, dists = load_all_one_sample_distances_files(
-        file_of_filenames, threads=threads
-    )
-    with open(pickle_out, "wb") as f:
-        pickle.dump((names, dists, {}), f)
-    return names, dists
-
-
-def load_from_pickle(pickle_file):
-    with open(pickle_file, "rb") as f:
-        return pickle.load(f)
 
 
 def write_distance_matrix_file(sample_names, distance_matrix, outfile):
@@ -206,3 +169,25 @@ def write_distance_matrix_file(sample_names, distance_matrix, outfile):
                     out.append(distance_matrix[tuple(sorted([i, j]))])
 
             print(sample, *out, sep="\t", file=f)
+
+
+def load_distance_matrix_file(infile):
+    sample_names = []
+    distances = {}
+
+    with utils.open_file(infile) as f:
+        for line_number, line in enumerate(f):
+            if line_number == 0:
+                assert line.startswith("\t")
+                sample_names = line.rstrip().split("\t")[1:]
+            elif line_number == 1:
+                continue
+            else:
+                fields = line.rstrip().split("\t", maxsplit=line_number)
+                assert fields[0] == sample_names[line_number - 1]
+                for i in range(1, line_number):
+                    distances[tuple(sorted([line_number - 1, i - 1]))] = float(
+                        fields[i]
+                    )
+
+    return sample_names, distances
