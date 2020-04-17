@@ -26,9 +26,9 @@ def test_pipeline(caplog):
     caplog.set_level(logging.INFO)
     vcf_names_file = "tmp.tasks.vcfs_to_names.tsv"
     mask_bed_file = os.path.join(data_dir, "mask.bed")
-    distances_prefix = "tmp.distances"
-    dist_matrix_file = f"{distances_prefix}.distance_matrix.tsv.gz"
-    variant_counts_file = f"{distances_prefix}.variant_counts.tsv.gz"
+    distance_matrix_prefix = "tmp.distance_matrix"
+    dist_matrix_file = f"{distance_matrix_prefix}.distance_matrix.tsv.gz"
+    variant_counts_file = f"{distance_matrix_prefix}.variant_counts.tsv.gz"
     utils.rm_rf(vcf_names_file, dist_matrix_file, variant_counts_file)
 
     # ------------------ vcfs_to_names ----------------------------------------
@@ -40,10 +40,10 @@ def test_pipeline(caplog):
     expect = os.path.join(data_dir, "vcfs_to_names.expect.tsv")
     assert filecmp.cmp(options.out_tsv, expect, shallow=False)
 
-    # ------------------ distances --------------------------------------------
+    # ----------------- distance_matrix ---------------------------------------
     options = mock.Mock()
     options.method = "vcf"
-    options.out = distances_prefix
+    options.out = distance_matrix_prefix
     options.filenames_tsv = vcf_names_file
     options.threads = 1
     options.vcf_numeric_filter = None
@@ -51,11 +51,11 @@ def test_pipeline(caplog):
     options.het_to_hom_cutoff = None
     options.mask_bed_file = mask_bed_file
     options.vcf_ignore_filter_pass = True
-    expect_matrix_file = os.path.join(data_dir, "distances.matrix.tsv")
+    expect_matrix_file = os.path.join(data_dir, "distance_matrix.tsv")
     expect_names, expect_distances = distances.load_distance_matrix_file(
         expect_matrix_file
     )
-    tasks.distances.run(options)
+    tasks.distance_matrix.run(options)
     assert os.path.exists(dist_matrix_file)
     assert os.path.exists(variant_counts_file)
     got_names, got_distances = distances.load_distance_matrix_file(dist_matrix_file)
@@ -65,7 +65,7 @@ def test_pipeline(caplog):
     # ----------------- triples -----------------------------------------------
     options = mock.Mock()
     options.vcfs_tsv = vcf_names_file
-    options.distances_file = dist_matrix_file
+    options.distance_matrix = dist_matrix_file
     options.var_counts_file = variant_counts_file
     options.phenos_tsv = os.path.join(data_dir, "phenos.tsv")
     options.pheno_constraints_json = os.path.join(data_dir, "pheno_constraint.json")

@@ -1,3 +1,3 @@
-__all__ = ["distances", "pheno_constraints_template", "triples", "vcfs_to_names"]
+__all__ = ["distance_matrix", "pheno_constraints_template", "triples", "vcfs_to_names"]
 
 from triphecta.tasks import *
