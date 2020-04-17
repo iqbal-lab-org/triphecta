@@ -147,3 +147,15 @@ def test_load_distance_matrix_file():
     got_names, got_distances = distances.load_distance_matrix_file(infile)
     assert got_names == expect_names
     assert got_distances == expect_distances
+
+
+def test_newick_from_dist_matrix():
+    infile = os.path.join(data_dir, "newick_from_dist_matrix.tsv")
+    tmp_out = "tmp.newick_from_dist_matrix.out"
+    utils.rm_rf(tmp_out)
+    distances.newick_from_dist_matrix(infile, tmp_out, "upgma")
+    assert os.path.exists(tmp_out)
+    os.unlink(tmp_out)
+    distances.newick_from_dist_matrix(infile, tmp_out, "nj")
+    assert os.path.exists(tmp_out)
+    os.unlink(tmp_out)

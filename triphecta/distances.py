@@ -3,6 +3,7 @@ import itertools
 import logging
 import multiprocessing
 
+import dendropy
 import numpy as np
 
 from triphecta import utils, variant_counts, vcf
@@ -191,3 +192,24 @@ def load_distance_matrix_file(infile):
                     )
 
     return sample_names, distances
+
+
+def newick_from_dist_matrix(infile, outfile, method):
+    with utils.open_file(infile) as f:
+        pdm = dendropy.PhylogeneticDistanceMatrix.from_csv(src=f, delimiter="\t")
+
+    if method == "upgma":
+        tree = pdm.upgma_tree()
+    elif method == "nj":
+        tree = pdm.nj_tree()
+    else:
+        raise ValueError(
+            f"Got method {method}, but must be upgma or nj. Cannot continue"
+        )
+
+    with utils.open_file(outfile, "w") as f:
+        print(
+            tree.as_string("newick", suppress_rooting=True).replace("'", ""),
+            end="",
+            file=f,
+        )
