@@ -152,3 +152,12 @@ def test_write_distance_matrix_file():
     expect = os.path.join(data_dir, "write_distance_matrix_file.tsv")
     assert filecmp.cmp(tmp_out, expect, shallow=False)
     os.unlink(tmp_out)
+
+
+def test_load_distance_matrix_file():
+    infile = os.path.join(data_dir, "load_distance_matrix_file.tsv")
+    expect_names = ["sample1", "sample2", "sample3"]
+    expect_distances = {(0, 1): 3, (0, 2): 4, (1, 2): 42}
+    got_names, got_distances = distances.load_distance_matrix_file(infile)
+    assert got_names == expect_names
+    assert got_distances == expect_distances

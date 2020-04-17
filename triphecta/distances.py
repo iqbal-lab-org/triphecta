@@ -206,3 +206,23 @@ def write_distance_matrix_file(sample_names, distance_matrix, outfile):
                     out.append(distance_matrix[tuple(sorted([i, j]))])
 
             print(sample, *out, sep="\t", file=f)
+
+
+def load_distance_matrix_file(infile):
+    sample_names = []
+    distances = {}
+
+    with utils.open_file(infile) as f:
+        for line_number, line in enumerate(f):
+            if line_number == 0:
+                assert line.startswith("\t")
+                sample_names = line.rstrip().split("\t")[1:]
+            elif line_number == 1:
+                continue
+            else:
+                fields = line.rstrip().split("\t", maxsplit=line_number)
+                assert fields[0] == sample_names[line_number - 1]
+                for i in range(1, line_number):
+                    distances[tuple(sorted([line_number - 1, i - 1]))] = int(fields[i])
+
+    return sample_names, distances
