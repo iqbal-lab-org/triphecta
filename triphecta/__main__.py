@@ -57,7 +57,7 @@ def main(args=None):
     subparser_distances = subparsers.add_parser(
         "distances",
         help="Process genomic distance information",
-        usage="triphecta distances <vcf|premade> <data_tsv> <outfile>",
+        usage="triphecta distances [options] <vcf|premade> <data_tsv> <out>",
         description="Calculates distance between genomes using VCF files, or loads pre-made distances. Saves data as binary file for use with other triphecta tasks",
     )
 
@@ -72,7 +72,10 @@ def main(args=None):
         help="Name of input data TSV file. Must have 'sample' column, and either 'vcf_file' or 'distance_file' column, depending on method",
     )
 
-    subparser_distances.add_argument("outfile", help="Name of output file")
+    subparser_distances.add_argument(
+        "out",
+        help="If method=vcf, prefix of output files. If method=premade, name of single output file",
+    )
 
     subparser_distances.add_argument(
         "--threads",
@@ -80,12 +83,6 @@ def main(args=None):
         help="Number of threads to use [%(default)s]",
         default=1,
         metavar="INT",
-    )
-
-    subparser_distances.add_argument(
-        "--matrix_file",
-        help="Write distance matrix TSV file, can be read by eg dendropy",
-        metavar="FILENAME",
     )
 
     subparser_distances.add_argument(
@@ -126,24 +123,6 @@ def main(args=None):
     subparser_distances.set_defaults(func=triphecta.tasks.distances.run)
 
     # --------------------- pheno_constraints_template ------------------------
-    subparser_distance_matrix = subparsers.add_parser(
-        "distance_matrix",
-        help="Make a template phenotype constraints file, for use with 'triphecta triples'",
-        usage="triphecta pheno_constraints_template <phenos.tsv> <out.json>",
-        description="Make a template phenotype constraints file, for use with 'triphecta triples'",
-    )
-
-    subparser_distance_matrix.add_argument(
-        "distances_file", help="Name of distances file made by 'triphecta distances'"
-    )
-
-    subparser_distance_matrix.add_argument(
-        "outfile", help="Name of output distance matrix TSV file"
-    )
-
-    subparser_distance_matrix.set_defaults(func=triphecta.tasks.distance_matrix.run)
-
-    # --------------------- pheno_constraints_template ------------------------
     subparser_pheno_constraints_template = subparsers.add_parser(
         "pheno_constraints_template",
         help="Make a template phenotype constraints file, for use with 'triphecta triples'",
@@ -177,7 +156,8 @@ def main(args=None):
     )
 
     subparser_triples.add_argument(
-        "distances_file", help="Name of distances file, made by 'triphecta distances'"
+        "distances_file",
+        help="Name of distance matrix file, made by 'triphecta distances'",
     )
 
     subparser_triples.add_argument("phenos_tsv", help="Name of phenotypes TSV file")
@@ -195,6 +175,12 @@ def main(args=None):
         action="append",
         required=True,
         metavar="Drug,value",
+    )
+
+    subparser_triples.add_argument(
+        "--var_counts_file",
+        help="Variant counts file *.variant_counts.tsv.gz made by 'triphecta distances' if method was 'vcf'",
+        metavar="FILENAME",
     )
 
     subparser_triples.add_argument(

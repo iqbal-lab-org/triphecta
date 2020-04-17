@@ -17,6 +17,7 @@ __all__ = [
     "tasks",
     "triphenotops",
     "utils",
+    "variant_counts",
     "vcf",
 ]
 
