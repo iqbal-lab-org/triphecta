@@ -56,7 +56,7 @@ def main(args=None):
     # ----------------------- distance_matrix ---------------------------------
     subparser_distance_matrix = subparsers.add_parser(
         "distance_matrix",
-        help="Process genomic distance information",
+        help="Make distance matrix from VCFs or from pairwise pre-made distance files",
         usage="triphecta distance_matrix [options] <vcf|premade> <filenames_tsv> <out>",
         description="Calculates distance between genomes using VCF files, or loads pre-made distances. Saves distance matrix in TSV format",
     )
@@ -127,7 +127,7 @@ def main(args=None):
         "tree",
         help="Make a tree from distance matrix",
         usage="triphecta tree <nj|upgma> <distance_matrix> <out>",
-        description="Make a tree from distance matrix",
+        description="Make a tree in newick format from distance matrix",
     )
 
     subparser_tree.add_argument(
@@ -138,7 +138,7 @@ def main(args=None):
         "distance_matrix", help="Distance matrix file made by distance_matrix"
     )
 
-    subparser_tree.add_argument("out", help="Name of output file")
+    subparser_tree.add_argument("out", help="Name of output newick file")
 
     subparser_tree.set_defaults(func=triphecta.tasks.tree.run)
 
