@@ -195,21 +195,26 @@ def load_distance_matrix_file(infile):
 
 
 def newick_from_dist_matrix(infile, outfile, method):
+    logging.info(f"Loading distance matrix file {infile}")
     with utils.open_file(infile) as f:
         pdm = dendropy.PhylogeneticDistanceMatrix.from_csv(src=f, delimiter="\t")
 
     if method == "upgma":
+        logging.info("Calculating upgma tree")
         tree = pdm.upgma_tree()
     elif method == "nj":
+        logging.info("Calculating nj tree")
         tree = pdm.nj_tree()
     else:
         raise ValueError(
             f"Got method {method}, but must be upgma or nj. Cannot continue"
         )
 
+    logging.info(f"Writing tree to file {outfile}")
     with utils.open_file(outfile, "w") as f:
         print(
             tree.as_string("newick", suppress_rooting=True).replace("'", ""),
             end="",
             file=f,
         )
+    logging.info(f"Finished making tree")
