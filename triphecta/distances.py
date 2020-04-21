@@ -71,7 +71,7 @@ def distances_between_vcf_files(
     logging.info(f"Saved distance matrix to file {matrix_file}")
     var_counts_file = f"{outprefix}.variant_counts.tsv.gz"
     variant_counts.save_variant_count_list_to_tsv(var_counts, var_counts_file)
-    logging.info(f"Saved variant counts file {variant_counts}")
+    logging.info(f"Saved variant counts file {var_counts_file}")
     return sample_names, dists, var_counts
 
 
