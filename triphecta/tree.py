@@ -1,11 +1,14 @@
 import logging
+import shutil
+import subprocess
 
 import dendropy
 
 from triphecta import utils
 
 
-def newick_from_dist_matrix(infile, outfile, method):
+def dendropy_newick_from_dist_matrix(infile, outfile, method):
+    logging.info("Calculating tree using dendropy")
     logging.info(f"Loading distance matrix file {infile}")
     with utils.open_file(infile) as f:
         # triphecta saves distance matrix in the standard "phylip" format.
@@ -35,4 +38,23 @@ def newick_from_dist_matrix(infile, outfile, method):
             end="",
             file=f,
         )
-    logging.info(f"Finished making tree")
+
+
+def quicktree_newick_from_dist_matrix(infile, outfile, method):
+    # quicktree can't read gzip file
+    if infile.endswith(".gz"):
+        infile = f"<(zcat {infile})"
+
+    method_opt = " -upgma " if method == "upgma" else " "
+    command = f"quicktree{method_opt}-in m -out t {infile} > {outfile}"
+    logging.info("Calculating tree using quicktree.")
+    utils.syscall(command)
+
+
+def newick_from_dist_matrix(infile, outfile, method, force_dendropy=False):
+    if force_dendropy or shutil.which("quicktree") is None:
+        dendropy_newick_from_dist_matrix(infile, outfile, method)
+    else:
+        quicktree_newick_from_dist_matrix(infile, outfile, method)
+
+    logging.info("Finished making tree")

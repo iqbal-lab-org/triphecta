@@ -12,9 +12,10 @@ def test_newick_from_dist_matrix():
     infile = os.path.join(data_dir, "newick_from_dist_matrix.txt")
     tmp_out = "tmp.newick_from_dist_matrix.out"
     utils.rm_rf(tmp_out)
-    tree.newick_from_dist_matrix(infile, tmp_out, "upgma")
-    assert os.path.exists(tmp_out)
-    os.unlink(tmp_out)
-    tree.newick_from_dist_matrix(infile, tmp_out, "nj")
-    assert os.path.exists(tmp_out)
-    os.unlink(tmp_out)
+    for force in True, False:
+        tree.newick_from_dist_matrix(infile, tmp_out, "upgma", force_dendropy=force)
+        assert os.path.exists(tmp_out)
+        os.unlink(tmp_out)
+        tree.newick_from_dist_matrix(infile, tmp_out, "nj", force_dendropy=force)
+        assert os.path.exists(tmp_out)
+        os.unlink(tmp_out)

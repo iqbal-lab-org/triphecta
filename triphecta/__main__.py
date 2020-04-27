@@ -126,8 +126,14 @@ def main(args=None):
     subparser_tree = subparsers.add_parser(
         "tree",
         help="Make a tree from distance matrix",
-        usage="triphecta tree <nj|upgma> <distance_matrix> <out>",
+        usage="triphecta tree [options] <nj|upgma> <distance_matrix> <out>",
         description="Make a tree in newick format from distance matrix",
+    )
+
+    subparser_tree.add_argument(
+        "--dendropy",
+        action="store_true",
+        help="Use dendropy. By default, quicktree is used if it is found in your PATH, otherwise dendropy is used. This option forces dendropy.",
     )
 
     subparser_tree.add_argument(
