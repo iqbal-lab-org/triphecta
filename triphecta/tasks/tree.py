@@ -1,7 +1,10 @@
-from triphecta import distances
+from triphecta import tree
 
 
 def run(options):
-    distances.newick_from_dist_matrix(
-        options.distance_matrix, options.out, options.method
+    tree.newick_from_dist_matrix(
+        options.distance_matrix,
+        options.out,
+        options.method,
+        force_dendropy=options.dendropy,
     )

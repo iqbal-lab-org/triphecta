@@ -1,4 +1,4 @@
-	sample_1	sample_10	sample_2	sample_3	sample_4	sample_5	sample_6	sample_7	sample_8	sample_9
+10
 sample_1	0	0	2	2	3	3	5	4	4	4
 sample_10	0	0	2	2	3	3	5	4	4	4
 sample_2	2	2	0	2	1	3	7	6	6	6

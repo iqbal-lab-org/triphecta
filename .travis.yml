@@ -5,6 +5,7 @@ python:
 - '3.6'
 
 install:
+- source ./.travis.install_dependencies.sh
 - pip install tox
 
 script:
