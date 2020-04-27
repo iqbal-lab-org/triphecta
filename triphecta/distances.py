@@ -66,7 +66,7 @@ def distances_between_vcf_files(
         dists[tuple(sorted([i, j]))] = dist
 
     logging.info("Finished calculating distance matrix")
-    matrix_file = f"{outprefix}.distance_matrix.tsv.gz"
+    matrix_file = f"{outprefix}.distance_matrix.txt.gz"
     write_distance_matrix_file(sample_names, dists, matrix_file)
     logging.info(f"Saved distance matrix to file {matrix_file}")
     var_counts_file = f"{outprefix}.variant_counts.tsv.gz"
@@ -159,7 +159,7 @@ def distances_from_all_one_sample_distances_files(
 
 def write_distance_matrix_file(sample_names, distance_matrix, outfile):
     with utils.open_file(outfile, "w") as f:
-        print("", *sample_names, sep="\t", file=f)
+        print(len(sample_names), file=f)
         for i, sample in enumerate(sample_names):
             out = []
 
@@ -179,17 +179,29 @@ def load_distance_matrix_file(infile):
     with utils.open_file(infile) as f:
         for line_number, line in enumerate(f):
             if line_number == 0:
-                assert line.startswith("\t")
-                sample_names = line.rstrip().split("\t")[1:]
+                try:
+                    number_of_samples = int(line.rstrip())
+                except:
+                    raise RuntimeError(
+                        f"Expected first line of distance matrix to contain a number only. Got this: {line}"
+                    )
+
+                sample_names = []
             elif line_number == 1:
+                sample_names.append(line.split()[0])
                 continue
             else:
                 fields = line.rstrip().split("\t", maxsplit=line_number)
-                assert fields[0] == sample_names[line_number - 1]
+                sample_names.append(fields[0])
                 for i in range(1, line_number):
                     distances[tuple(sorted([line_number - 1, i - 1]))] = float(
                         fields[i]
                     )
+
+    if len(sample_names) != number_of_samples:
+        raise RuntimeError(
+            f"Expected {number_of_samples} samples in distance matrix file, but got {len(sample_names)}"
+        )
 
     return sample_names, distances
 
@@ -197,7 +209,14 @@ def load_distance_matrix_file(infile):
 def newick_from_dist_matrix(infile, outfile, method):
     logging.info(f"Loading distance matrix file {infile}")
     with utils.open_file(infile) as f:
-        pdm = dendropy.PhylogeneticDistanceMatrix.from_csv(src=f, delimiter="\t")
+        # triphecta saves distance matrix in the standard "phylip" format.
+        # First line the number of samples. There is no line of just sample
+        # names. This means we need to skip the first line, and then tell
+        # dendropy that the first line is not sample names.
+        next(f)
+        pdm = dendropy.PhylogeneticDistanceMatrix.from_csv(
+            src=f, is_first_row_column_names=False, delimiter="\t"
+        )
 
     if method == "upgma":
         logging.info("Calculating upgma tree")

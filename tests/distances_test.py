@@ -12,11 +12,15 @@ def test_distances_between_vcf_files():
     vcf_names_tsv = os.path.join(data_dir, "distances_between_vcf_files.vcfs.tsv")
     mask_bed_file = os.path.join(data_dir, "distances_between_vcf_files.mask.bed")
     outprefix = "tmp.distances_between_vcf_files"
-    got_matrix_file = f"{outprefix}.distance_matrix.tsv.gz"
+    got_matrix_file = f"{outprefix}.distance_matrix.txt.gz"
     got_variant_counts_file = f"{outprefix}.variant_counts.tsv.gz"
     utils.rm_rf(got_matrix_file, got_variant_counts_file)
 
-    got_sample_names, got_dists, got_variant_counts = distances.distances_between_vcf_files(
+    (
+        got_sample_names,
+        got_dists,
+        got_variant_counts,
+    ) = distances.distances_between_vcf_files(
         vcf_names_tsv,
         outprefix,
         threads=2,
@@ -130,27 +134,33 @@ def test_distances_from_all_one_sample_distances_files():
 
 
 def test_write_distance_matrix_file():
-    tmp_out = "tmp.distances.write_distance_matrix_file.tsv"
+    tmp_out = "tmp.distances.write_distance_matrix_file.txt"
     utils.rm_rf(tmp_out)
     sample_names = ["sample1", "sample2", "sample3"]
     dists = {(0, 1): 3, (0, 2): 4, (1, 2): 42}
     distances.write_distance_matrix_file(sample_names, dists, tmp_out)
-    expect = os.path.join(data_dir, "write_distance_matrix_file.tsv")
+    expect = os.path.join(data_dir, "write_distance_matrix_file.txt")
     assert filecmp.cmp(tmp_out, expect, shallow=False)
     os.unlink(tmp_out)
 
 
 def test_load_distance_matrix_file():
-    infile = os.path.join(data_dir, "load_distance_matrix_file.tsv")
+    infile = os.path.join(data_dir, "load_distance_matrix_file.txt")
     expect_names = ["sample1", "sample2", "sample3"]
     expect_distances = {(0, 1): 3, (0, 2): 4, (1, 2): 42}
     got_names, got_distances = distances.load_distance_matrix_file(infile)
     assert got_names == expect_names
     assert got_distances == expect_distances
 
+    bad_infile = os.path.join(
+        data_dir, "load_distance_matrix_file.wrong_sample_number.txt"
+    )
+    with pytest.raises(RuntimeError):
+        distances.load_distance_matrix_file(bad_infile)
+
 
 def test_newick_from_dist_matrix():
-    infile = os.path.join(data_dir, "newick_from_dist_matrix.tsv")
+    infile = os.path.join(data_dir, "newick_from_dist_matrix.txt")
     tmp_out = "tmp.newick_from_dist_matrix.out"
     utils.rm_rf(tmp_out)
     distances.newick_from_dist_matrix(infile, tmp_out, "upgma")

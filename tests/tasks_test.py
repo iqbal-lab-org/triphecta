@@ -27,7 +27,7 @@ def test_pipeline(caplog):
     vcf_names_file = "tmp.tasks.vcfs_to_names.tsv"
     mask_bed_file = os.path.join(data_dir, "mask.bed")
     distance_matrix_prefix = "tmp.distance_matrix"
-    dist_matrix_file = f"{distance_matrix_prefix}.distance_matrix.tsv.gz"
+    dist_matrix_file = f"{distance_matrix_prefix}.distance_matrix.txt.gz"
     variant_counts_file = f"{distance_matrix_prefix}.variant_counts.tsv.gz"
     utils.rm_rf(vcf_names_file, dist_matrix_file, variant_counts_file)
 
@@ -51,7 +51,7 @@ def test_pipeline(caplog):
     options.het_to_hom_cutoff = None
     options.mask_bed_file = mask_bed_file
     options.vcf_ignore_filter_pass = True
-    expect_matrix_file = os.path.join(data_dir, "distance_matrix.tsv")
+    expect_matrix_file = os.path.join(data_dir, "distance_matrix.txt")
     expect_names, expect_distances = distances.load_distance_matrix_file(
         expect_matrix_file
     )

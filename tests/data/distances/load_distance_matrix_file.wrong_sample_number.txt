@@ -1,0 +1,4 @@
+42
+sample1	0	3	4
+sample2	3	0	42
+sample3	4	42	0
