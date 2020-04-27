@@ -1,8 +1,10 @@
 from contextlib import contextmanager
 import csv
 import gzip
+import logging
 import os
 import subprocess
+import sys
 
 from triphecta import phenotypes
 
@@ -98,3 +100,30 @@ def command_line_wanted_phenos_to_dict(pheno_list):
             raise TypeError(f"Error parsing command line phenotypes string '{string}'")
 
     return wanted_phenos
+
+
+def syscall(command):
+    logging.info(f"Run command: {command}")
+    completed_process = subprocess.run(
+        command,
+        shell=True,
+        executable="/bin/bash",
+        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        universal_newlines=True,
+    )
+    logging.info(f"Return code: {completed_process.returncode}")
+    if completed_process.returncode != 0:
+        print("Error running this command:", command, file=sys.stderr)
+        print("Return code:", completed_process.returncode, file=sys.stderr)
+        print(
+            "Output from stdout:", completed_process.stdout, sep="\n", file=sys.stderr
+        )
+        print(
+            "Output from stderr:", completed_process.stderr, sep="\n", file=sys.stderr
+        )
+        raise RuntimeError("Error in system call. Cannot continue")
+
+    logging.info(f"stdout:\n{completed_process.stdout.rstrip()}")
+    logging.info(f"stderr:\n{completed_process.stderr.rstrip()}")
+    return completed_process
