@@ -15,6 +15,7 @@ __all__ = [
     "strain_triple",
     "strain_triples",
     "tasks",
+    "tree",
     "triphenotops",
     "utils",
     "variant_counts",

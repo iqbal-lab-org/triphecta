@@ -157,15 +157,3 @@ def test_load_distance_matrix_file():
     )
     with pytest.raises(RuntimeError):
         distances.load_distance_matrix_file(bad_infile)
-
-
-def test_newick_from_dist_matrix():
-    infile = os.path.join(data_dir, "newick_from_dist_matrix.txt")
-    tmp_out = "tmp.newick_from_dist_matrix.out"
-    utils.rm_rf(tmp_out)
-    distances.newick_from_dist_matrix(infile, tmp_out, "upgma")
-    assert os.path.exists(tmp_out)
-    os.unlink(tmp_out)
-    distances.newick_from_dist_matrix(infile, tmp_out, "nj")
-    assert os.path.exists(tmp_out)
-    os.unlink(tmp_out)
