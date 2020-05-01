@@ -166,6 +166,7 @@ class StrainTriples:
             triple.update_variants_of_interest()
             outfile = os.path.join(file_per_triple_dir, f"{triple_index+1}.tsv")
             triple.write_variants_of_interest_file(outfile, vcf_records_to_mask=mask)
+            triple.clear_variant_calls()
 
         triple_names_file = outprefix + ".triple_ids.tsv"
         logging.info(f"Writing file of triple and sample ids {triple_names_file}")
