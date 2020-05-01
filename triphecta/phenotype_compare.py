@@ -4,6 +4,7 @@ class PhenotypeCompare:
             "equal": PhenotypeCompare._compare_method_equal,
             "range": PhenotypeCompare._compare_method_range,
             "abs_distance": PhenotypeCompare._compare_method_abs_distance,
+            "percent_distance": PhenotypeCompare._compare_method_percent_distance,
         }
         self.constraints = constraints
         errors = self._sanity_check_constraints()
@@ -36,7 +37,11 @@ class PhenotypeCompare:
             ):
                 errors.append(f"method is 'range', low and high not supplied: {d}")
             if d["method"] == "abs_distance" and ("max_dist" not in d["params"]):
-                errors.append(f"method is 'abs_distance', max_dist not supplies: {d}")
+                errors.append(f"method is 'abs_distance', max_dist not supplied: {d}")
+            if d["method"] == "percent_distance" and ("max_percent" not in d["params"]):
+                errors.append(
+                    f"method is 'percent_distance', max_percent not supplied: {d}"
+                )
 
         if not found_must_be_same:
             errors.append(
@@ -68,6 +73,12 @@ class PhenotypeCompare:
     @staticmethod
     def _compare_method_abs_distance(p1, p2, max_dist=None):
         return abs(p1 - p2) <= max_dist
+
+    @staticmethod
+    def _compare_method_percent_distance(p1, p2, max_percent=None):
+        if p1 == p2 == 0:
+            return True
+        return 100 * abs(p1 - p2) / max(abs(p1), abs(p2)) <= max_percent
 
     @classmethod
     def _phenos_equal_account_for_none(
