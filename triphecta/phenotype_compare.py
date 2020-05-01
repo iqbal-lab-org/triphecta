@@ -3,6 +3,7 @@ class PhenotypeCompare:
         self.compare_functions = {
             "equal": PhenotypeCompare._compare_method_equal,
             "range": PhenotypeCompare._compare_method_range,
+            "abs_distance": PhenotypeCompare._compare_method_abs_distance,
         }
         self.constraints = constraints
         errors = self._sanity_check_constraints()
@@ -34,6 +35,8 @@ class PhenotypeCompare:
                 "low" not in d["params"] or "high" not in d["params"]
             ):
                 errors.append(f"method is 'range', low and high not supplied: {d}")
+            if d["method"] == "abs_distance" and ("max_dist" not in d["params"]):
+                errors.append(f"method is 'abs_distance', max_dist not supplies: {d}")
 
         if not found_must_be_same:
             errors.append(
@@ -61,6 +64,10 @@ class PhenotypeCompare:
     @staticmethod
     def _compare_method_range(p1, p2, low=None, high=None):
         return (low <= p1 <= high) == (low <= p2 <= high)
+
+    @staticmethod
+    def _compare_method_abs_distance(p1, p2, max_dist=None):
+        return abs(p1 - p2) <= max_dist
 
     @classmethod
     def _phenos_equal_account_for_none(
