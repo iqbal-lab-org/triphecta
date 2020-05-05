@@ -16,13 +16,9 @@ class PhenotypeCompare:
         }
 
     def _sanity_check_constraints(self):
-        found_must_be_same = False
         errors = []
 
         for d in self.constraints.values():
-            if d["must_be_same"]:
-                found_must_be_same = True
-
             if d["method"] not in self.compare_functions:
                 errors.append(f"Unknown method {d}")
                 continue
