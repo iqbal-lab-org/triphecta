@@ -7,11 +7,6 @@ def test_init_in_particular_sanity_check_constraints():
     constraints = {"d1": {"must_be_same": True, "method": "equal", "params": {}}}
     phenotype_compare.PhenotypeCompare(constraints)
 
-    # Fails requirement that must be at least one where "muste_be_same" is True
-    constraints = {"d1": {"must_be_same": False, "method": "equal", "params": {}}}
-    with pytest.raises(RuntimeError):
-        phenotype_compare.PhenotypeCompare(constraints)
-
     # Uses an unknown method
     constraints = {"d1": {"must_be_same": True, "method": "WRONG", "params": {}}}
     with pytest.raises(RuntimeError):

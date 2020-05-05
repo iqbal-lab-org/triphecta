@@ -43,11 +43,6 @@ class PhenotypeCompare:
                     f"method is 'percent_distance', max_percent not supplied: {d}"
                 )
 
-        if not found_must_be_same:
-            errors.append(
-                f"Must have at least one constraint where 'must_be_same' is True"
-            )
-
         return errors
 
     def satisfy_required_differences(self, pheno1, pheno2):
