@@ -13,7 +13,7 @@ class StrainTriples:
         self.top_n_genos = top_n_genos
         self.triples = []
 
-    def find_strain_triples(self, wanted_phenos):
+    def find_strain_triples(self, case_sample_names):
         # The initial use case for this was to get a sample that is resistant to
         # drug X, and find two closest (in terms of genomic distance) neighbours
         # that are sensitive to drug X. But we may be interested in other phenotypes,
@@ -22,20 +22,9 @@ class StrainTriples:
         # as resistant to drug X), and "control" to mean does not have the phenotype
         # (such as sensitive to drug X).
 
-        # eg wanted_phenos = {"d1": True, "d2": 42}
-        self.triples = []
-        wanted_phenos = {
-            k: phenotypes.data_lookup.get(v, v) for k, v in wanted_phenos.items()
-        }
-        wanted_pheno_keys = set(wanted_phenos.keys())
-
-        for sample_name in self.phenos.phenos:
+        for sample_name in case_sample_names:
             if sample_name in self.genos.excluded_samples:
-                continue
-
-            if not self.pheno_compare.phenos_agree_on_features(
-                self.phenos[sample_name], wanted_phenos, wanted_pheno_keys
-            ):
+                logging.info(f"Case '{sample_name}' excluded. Skipping")
                 continue
 
             logging.info(f"Looking for control samples for case sample '{sample_name}'")
@@ -134,8 +123,8 @@ class StrainTriples:
                     file=f,
                 )
 
-    def run_analysis(self, wanted_phenos, outprefix, mask_file=None):
-        self.find_strain_triples(wanted_phenos)
+    def run_analysis(self, case_sample_names, outprefix, mask_file=None):
+        self.find_strain_triples(case_sample_names)
         if len(self.triples) == 0:
             logging.info("No strain triples found. Stopping")
             return

@@ -172,8 +172,13 @@ def main(args=None):
     subparser_triples = subparsers.add_parser(
         "triples",
         help="Find strain triples and report their variants etc",
-        usage="triphecta triples [options] <vcfs_tsv> <distance_matrix> <phenos_tsv> <pheno_constraints_json> <out>",
+        usage="triphecta triples [options] <case_names_file> <vcfs_tsv> <distance_matrix> <phenos_tsv> <pheno_constraints_json> <out>",
         description="Find strain triples and report their variants etc",
+    )
+
+    subparser_triples.add_argument(
+        "case_names_file",
+        help="Name of file of case sample names. One name per line",
     )
 
     subparser_triples.add_argument(
@@ -194,14 +199,6 @@ def main(args=None):
     )
 
     subparser_triples.add_argument("out", help="Prefix of output files")
-
-    subparser_triples.add_argument(
-        "--wanted_pheno",
-        help="REQUIRED. Phenotype of interest and the value. eg: 'Drug_x,Resistant'. This option can be used more than once, and must be used at least once.",
-        action="append",
-        required=True,
-        metavar="Drug,value",
-    )
 
     subparser_triples.add_argument(
         "--var_counts_file",

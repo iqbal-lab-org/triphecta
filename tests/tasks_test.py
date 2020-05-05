@@ -76,6 +76,7 @@ def test_pipeline(caplog):
 
     # ----------------- triples -----------------------------------------------
     options = mock.Mock()
+    options.case_names_file = os.path.join(data_dir, "triples.case_sample_names.txt")
     options.vcfs_tsv = vcf_names_file
     options.distance_matrix = dist_matrix_file
     options.var_counts_file = variant_counts_file

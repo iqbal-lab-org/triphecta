@@ -92,8 +92,8 @@ def test_find_strain_triples(genos, phenos, constraints, caplog):
     caplog.set_level(logging.INFO)
     pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
     triples = strain_triples.StrainTriples(genos, phenos, pheno_compare, top_n_genos=10)
-    wanted_phenos = {"p1": "R", "p2": "R"}
-    triples.find_strain_triples(wanted_phenos)
+    case_sample_names = ["s1", "s2"]
+    triples.find_strain_triples(case_sample_names)
 
     rank_data_s1_1 = sample_neighbours_finding.RankData(
         sample="s3", rank_sum=0, geno_rank=0, pheno_rank=0, geno_dist=1, pheno_dist=0
@@ -170,13 +170,13 @@ def test_run_analysis(genos, phenos, constraints, caplog):
     caplog.set_level(logging.INFO)
     pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
     triples = strain_triples.StrainTriples(genos, phenos, pheno_compare, top_n_genos=10)
-    wanted_phenos = {"p1": "R", "p2": "R"}
+    case_sample_names = ["s1", "s2"]
     tmp_dir = "tmp.strain_triples.run_analysis"
     subprocess.check_output(f"rm -rf {tmp_dir}", shell=True)
     os.mkdir(tmp_dir)
     outprefix = os.path.join(tmp_dir, "out")
     mask_file = os.path.join(data_dir, "run_analysis.mask.bed")
-    got = triples.run_analysis(wanted_phenos, outprefix, mask_file=mask_file)
+    got = triples.run_analysis(case_sample_names, outprefix, mask_file=mask_file)
     # The contents of these files are checked elsewhere. This test is just to
     # check then run of whole pipeline doesn't crash
     for filename in got.values():
