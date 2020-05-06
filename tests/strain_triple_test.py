@@ -1,6 +1,5 @@
 import filecmp
 import os
-import logging
 import pytest
 
 from triphecta import strain_triple, vcf

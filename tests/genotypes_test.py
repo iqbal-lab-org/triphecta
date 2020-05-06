@@ -1,8 +1,7 @@
 import os
-
 import pytest
 
-from triphecta import genotypes, variant_counts, vcf
+from triphecta import genotypes, variant_counts
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(this_dir, "data", "genotypes")

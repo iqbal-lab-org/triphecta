@@ -1,7 +1,7 @@
 import logging
 import os
 
-from triphecta import phenotypes, sample_neighbours_finding, strain_triple, utils, vcf
+from triphecta import sample_neighbours_finding, strain_triple, utils, vcf
 
 
 class StrainTriples:

@@ -2,7 +2,7 @@ import filecmp
 import os
 import pytest
 
-from triphecta import distances, utils, variant_counts, vcf
+from triphecta import distances, utils, variant_counts
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(this_dir, "data", "distances")
@@ -89,8 +89,6 @@ def test_update_distances_for_one_sample():
 
 def test_load_sample_distances_file_of_filenames():
     infile = os.path.join(data_dir, "load_sample_distances_file_of_filenames.tsv")
-    expect_names = ["s1", "s2"]
-    expect_files = ["f1", "f2"]
     got_names, got_files = distances._load_sample_distances_file_of_filenames(infile)
     assert got_names == ["s1", "s2"]
     assert got_files == ["f1", "f2"]
