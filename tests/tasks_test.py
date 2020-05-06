@@ -74,6 +74,19 @@ def test_pipeline(caplog):
         assert os.path.exists(options.out)
         os.unlink(options.out)
 
+    # ----------------- find_cases --------------------------------------------
+    options = mock.Mock()
+    options.wanted_pheno = ["drug1,R"]
+    options.phenos_tsv = os.path.join(data_dir, "phenos.tsv")
+    options.pheno_constraints_json = os.path.join(data_dir, "pheno_constraint.json")
+    options.outfile = "tmp.find_cases.out"
+    utils.rm_rf(options.outfile)
+    tasks.find_cases.run(options)
+    with open(options.outfile) as f:
+        got_samples = [x.rstrip() for x in f]
+    assert got_samples == ["sample_1", "sample_2", "sample_6"]
+    os.unlink(options.outfile)
+
     # ----------------- triples -----------------------------------------------
     options = mock.Mock()
     options.case_names_file = os.path.join(data_dir, "triples.case_sample_names.txt")
@@ -84,7 +97,6 @@ def test_pipeline(caplog):
     options.pheno_constraints_json = os.path.join(data_dir, "pheno_constraint.json")
     options.out = "tmp.tasks.triples.out"
     utils.rm_rf("{options.out}.*")
-    options.wanted_pheno = ["drug1,R"]
     options.top_n_genos = 5
     options.max_pheno_diffs = 1
     options.mask_bed_file = mask_bed_file
