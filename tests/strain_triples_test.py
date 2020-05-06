@@ -116,6 +116,8 @@ def test_find_strain_triples(genos, phenos, constraints, caplog):
 
 
 def test_write_triples_names_file():
+    phenos_tsv = os.path.join(data_dir, "write_triples_names_file.phenos.tsv")
+    phenos = phenotypes.Phenotypes(phenos_tsv)
     tmp_out = "tmp.strain_triples.write_triples_names_file.tsv"
     subprocess.check_output(f"rm -f {tmp_out}", shell=True)
     Triple = collections.namedtuple("Triple", ["case", "control1", "control2"])
@@ -123,9 +125,9 @@ def test_write_triples_names_file():
     triples = [
         Triple("case1", Control("control1.1", 1, 2), Control("control1.2", 4, 5)),
         Triple("case2", Control("control2.1", 2, 3), Control("control2.2", 5, 6)),
-        Triple("case3", Control("control3.2", 3, 4), Control("control3.2", 6, 7)),
+        Triple("case3", Control("control3.1", 3, 4), Control("control3.2", 6, 7)),
     ]
-    strain_triples.StrainTriples._write_triples_names_file(triples, tmp_out)
+    strain_triples.StrainTriples._write_triples_names_file(triples, phenos, tmp_out)
     expect = os.path.join(data_dir, "write_triples_names_file.tsv")
     assert filecmp.cmp(tmp_out, expect, shallow=False)
     os.unlink(tmp_out)

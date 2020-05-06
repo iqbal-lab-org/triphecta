@@ -53,7 +53,9 @@ class StrainTriples:
             )
 
     @classmethod
-    def _write_triples_names_file(cls, triples, outfile):
+    def _write_triples_names_file(cls, triples, phenos, outfile):
+        pheno_names = sorted(list(phenos.pheno_types.keys()))
+
         with utils.open_file(outfile, "w") as f:
             print(
                 "triple_id",
@@ -64,6 +66,7 @@ class StrainTriples:
                 "control2",
                 "geno_dist2",
                 "pheno_dist2",
+                *[f"case_{x}\tcontrol1_{x}\tcontrol2_{x}" for x in pheno_names],
                 sep="\t",
                 file=f,
             )
@@ -77,6 +80,10 @@ class StrainTriples:
                     triple.control2.sample,
                     triple.control2.geno_dist,
                     triple.control2.pheno_dist,
+                    *[
+                        f"{phenos[triple.case][x]}\t{phenos[triple.control1.sample][x]}\t{phenos[triple.control2.sample][x]}"
+                        for x in pheno_names
+                    ],
                     sep="\t",
                     file=f,
                 )
@@ -159,7 +166,9 @@ class StrainTriples:
 
         triple_names_file = outprefix + ".triple_ids.tsv"
         logging.info(f"Writing file of triple and sample ids {triple_names_file}")
-        StrainTriples._write_triples_names_file(self.triples, triple_names_file)
+        StrainTriples._write_triples_names_file(
+            self.triples, self.phenos, triple_names_file
+        )
 
         variants_file = outprefix + ".variants.tsv"
         logging.info(f"Writing file of variants {variants_file}")
