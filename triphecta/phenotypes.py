@@ -114,9 +114,7 @@ class Phenotypes:
         return self.phenos[sample]
 
     def find_matching_cases(self, wanted_phenos, pheno_compare):
-        wanted_phenos = {
-            k: data_lookup.get(v, v) for k, v in wanted_phenos.items()
-        }
+        wanted_phenos = {k: data_lookup.get(v, v) for k, v in wanted_phenos.items()}
         wanted_pheno_keys = set(wanted_phenos.keys())
         matching_samples = []
 

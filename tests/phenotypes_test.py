@@ -71,16 +71,8 @@ def test_write_template_constraints_json():
 
 
 def test_find_matching_cases():
-    phenos = phenotypes.Phenotypes(
-        os.path.join(data_dir, "find_matching_cases.tsv")
-    )
-    constraints = {
-        "pheno2": {
-            "method": "equal",
-            "must_be_same": True,
-            "params": {},
-        }
-    }
+    phenos = phenotypes.Phenotypes(os.path.join(data_dir, "find_matching_cases.tsv"))
+    constraints = {"pheno2": {"method": "equal", "must_be_same": True, "params": {},}}
     pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
     got = phenos.find_matching_cases({"pheno2": "R"}, pheno_compare)
     assert got == ["s1"]
@@ -89,13 +81,7 @@ def test_find_matching_cases():
     got = phenos.find_matching_cases({"pheno2": "S"}, pheno_compare)
     assert got == ["s2", "s3"]
 
-    constraints = {
-        "pheno3": {
-            "method": "equal",
-            "must_be_same": False,
-            "params": {},
-        }
-    }
+    constraints = {"pheno3": {"method": "equal", "must_be_same": False, "params": {},}}
     pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
     got = phenos.find_matching_cases({"pheno3": "R"}, pheno_compare)
     assert got == ["s1", "s2"]
@@ -108,11 +94,7 @@ def test_find_matching_cases():
             "must_be_same": False,
             "params": {"max_dist": 5},
         },
-        "pheno2": {
-            "method": "equal",
-            "must_be_same": False,
-            "params": {},
-        }
+        "pheno2": {"method": "equal", "must_be_same": False, "params": {},},
     }
     pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
     got = phenos.find_matching_cases({"pheno1": 1}, pheno_compare)
@@ -129,4 +111,3 @@ def test_find_matching_cases():
     assert got == ["s2"]
     got = phenos.find_matching_cases({"pheno1": 199, "pheno2": "S"}, pheno_compare)
     assert got == ["s3"]
-

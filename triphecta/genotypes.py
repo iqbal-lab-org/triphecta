@@ -58,9 +58,10 @@ class Genotypes:
         if self.distance_matrix_file is None:
             raise RuntimeError("Must provide distance matrix file")
         else:
-            self.sample_names_list, self.distances = distances.load_distance_matrix_file(
-                self.distance_matrix_file
-            )
+            (
+                self.sample_names_list,
+                self.distances,
+            ) = distances.load_distance_matrix_file(self.distance_matrix_file)
 
         if self.variant_counts_file is not None:
             self.vcf_variant_counts = variant_counts.load_variant_count_list_from_tsv(
