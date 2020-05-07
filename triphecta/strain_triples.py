@@ -6,20 +6,22 @@ import os
 from triphecta import sample_neighbours_finding, strain_triple, utils, vcf
 
 
+global expect_variants
+global vcf_records_to_mask
+
 def _process_one_triple(
-    triple, triple_index, total_triples, expect_variants, vcf_files, mask, root_out
+    triple, triple_index, vcf_files, root_out
 ):
-    logging.info(f"Processing triple {triple_index+1} of {total_triples}")
-    case_vcf = vcf_files[triple.case]
-    control1_vcf = vcf_files[triple.control1.sample]
-    control2_vcf = vcf_files[triple.control2.sample]
+    global expect_variants
+    global vcf_records_to_mask
+    logging.info(f"Processing triple {triple_index+1}")
     triple.set_variants(expect_variants)
-    triple.load_variants_from_vcf_files(case_vcf, control1_vcf, control2_vcf)
+    triple.load_variants_from_vcf_files(*vcf_files)
     triple.update_variants_of_interest()
     outfile = os.path.join(root_out, f"{triple_index+1}.tsv")
-    triple.write_variants_of_interest_file(outfile, vcf_records_to_mask=mask)
+    triple.write_variants_of_interest_file(outfile, vcf_records_to_mask=vcf_records_to_mask)
     triple.clear_variant_calls()
-    logging.info(f"Finished triple {triple_index+1} of {total_triples}")
+    logging.info(f"Finished triple {triple_index+1}")
     return triple
 
 
@@ -49,6 +51,7 @@ class StrainTriples:
         # In the code, use the terminology "case" to mean has the phenotype (such
         # as resistant to drug X), and "control" to mean does not have the phenotype
         # (such as sensitive to drug X).
+        triples_list = []
         for sample_name in case_sample_names:
             if sample_name in self.genos.excluded_samples:
                 logging.info(f"Case '{sample_name}' excluded. Skipping")
@@ -75,9 +78,11 @@ class StrainTriples:
             )
             logging.info(f"Case: {sample_name}. Control1: {neighbours[0]}")
             logging.info(f"Case: {sample_name}. Control2: {neighbours[1]}")
-            self.triples.append(
+            triples_list.append(
                 strain_triple.StrainTriple(sample_name, neighbours[0], neighbours[1])
             )
+
+        return triples_list
 
     @classmethod
     def _write_triples_names_file(cls, triples, phenos, outfile):
@@ -130,6 +135,7 @@ class StrainTriples:
                 sep="\t",
                 file=f,
             )
+
             for variant_index, variant in enumerate(triples[0].variants):
                 if (
                     vcf_records_to_mask is not None
@@ -158,37 +164,37 @@ class StrainTriples:
                 )
 
     def run_analysis(self, case_sample_names, outprefix, mask_file=None):
-        self.find_strain_triples(case_sample_names)
-        if len(self.triples) == 0:
+        global vcf_records_to_mask
+        global expect_variants
+        triples_list = self.find_strain_triples(case_sample_names)
+        if len(triples_list) == 0:
             logging.info("No strain triples found. Stopping")
             return
 
         # The VCFs are expected to have the same positions. Use the first
         # VCF to load the variants and get the mask positions
-        vcf_file = self.genos.vcf_files[self.triples[0].case]
+        vcf_file = self.genos.vcf_files[triples_list[0].case]
         logging.info(f"Load variant positions from first VCF file {vcf_file}")
         _, expect_variants = vcf.load_variant_calls_from_vcf_file(vcf_file)
         if mask_file is None:
-            mask = None
+            vcf_records_to_mask = None
         else:
             logging.info(f"Loading mask from file {mask_file}")
-            mask = vcf.vcf_to_variant_positions_to_mask_from_bed_file(
+            vcf_records_to_mask = vcf.vcf_to_variant_positions_to_mask_from_bed_file(
                 vcf_file, mask_file
             )
 
         file_per_triple_dir = outprefix + ".triples"
         os.mkdir(file_per_triple_dir)
+        vcf_files = [(self.genos.vcf_files[t.case], self.genos.vcf_files[t.control1.sample], self.genos.vcf_files[t.control2.sample]) for t in triples_list]
 
         with multiprocessing.Pool(processes=self.processes) as pool:
             self.triples = pool.starmap(
                 _process_one_triple,
                 zip(
-                    self.triples,
-                    range(len(self.triples)),
-                    repeat(len(self.triples)),
-                    repeat(expect_variants),
-                    repeat(self.genos.vcf_files),
-                    repeat(mask),
+                    triples_list,
+                    range(len(triples_list)),
+                    vcf_files,
                     repeat(file_per_triple_dir),
                 ),
             )
@@ -202,7 +208,7 @@ class StrainTriples:
         variants_file = outprefix + ".variants.tsv"
         logging.info(f"Writing file of variants {variants_file}")
         StrainTriples._write_variants_summary_file(
-            self.triples, variants_file, vcf_records_to_mask=mask
+            self.triples, variants_file, vcf_records_to_mask=vcf_records_to_mask
         )
 
         return {

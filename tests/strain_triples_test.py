@@ -93,7 +93,7 @@ def test_find_strain_triples(genos, phenos, constraints, caplog):
     pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
     triples = strain_triples.StrainTriples(genos, phenos, pheno_compare, top_n_genos=10)
     case_sample_names = ["s1", "s2"]
-    triples.find_strain_triples(case_sample_names)
+    got_triples = triples.find_strain_triples(case_sample_names)
 
     rank_data_s1_1 = sample_neighbours_finding.RankData(
         sample="s3", rank_sum=0, geno_rank=0, pheno_rank=0, geno_dist=1, pheno_dist=0
@@ -112,7 +112,7 @@ def test_find_strain_triples(genos, phenos, constraints, caplog):
         strain_triple.StrainTriple("s2", rank_data_s2_1, rank_data_s2_2),
     ]
 
-    assert triples.triples == expect
+    assert got_triples == expect
 
 
 def test_write_triples_names_file():
