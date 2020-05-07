@@ -27,5 +27,8 @@ def run(options):
         pheno_compare,
         top_n_genos=options.top_n_genos,
         max_pheno_diffs=options.max_pheno_diffs,
+        processes=options.processes,
     )
-    triples.run_analysis(case_sample_names, options.out, mask_file=options.mask_bed_file)
+    triples.run_analysis(
+        case_sample_names, options.out, mask_file=options.mask_bed_file
+    )

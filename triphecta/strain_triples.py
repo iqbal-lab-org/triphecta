@@ -1,17 +1,72 @@
+from itertools import repeat
 import logging
+import multiprocessing
 import os
 
 from triphecta import sample_neighbours_finding, strain_triple, utils, vcf
 
 
+def _find_controls_for_one_case(
+    genos, phenos, pheno_compare, case_name, top_n_genos, max_pheno_dist
+):
+    logging.info(f"Looking for control samples for case sample '{case_name}'")
+    neighbours = sample_neighbours_finding.ranked_neighbours_for_one_sample(
+        genos,
+        phenos,
+        pheno_compare,
+        case_name,
+        top_n_genos=top_n_genos,
+        max_pheno_dist=max_pheno_dist,
+    )
+
+    if len(neighbours) < 2:
+        logging.info(
+            f"Not enough ({len(neighbours)}) controls found for case sample '{case_name}'"
+        )
+        return None
+
+    logging.info(
+        f"Found {len(neighbours)} potential controls for case sample '{case_name}"
+    )
+    logging.info(f"Case: {case_name}. Control1: {neighbours[0]}")
+    logging.info(f"Case: {case_name}. Control2: {neighbours[1]}")
+    return strain_triple.StrainTriple(case_name, neighbours[0], neighbours[1])
+
+
+def _process_one_triple(
+    triple, triple_index, total_triples, expect_variants, vcf_files, mask, root_out
+):
+    logging.info(f"Processing triple {triple_index+1} of {total_triples}")
+    case_vcf = vcf_files[triple.case]
+    control1_vcf = vcf_files[triple.control1.sample]
+    control2_vcf = vcf_files[triple.control2.sample]
+    triple.set_variants(expect_variants)
+    triple.load_variants_from_vcf_files(case_vcf, control1_vcf, control2_vcf)
+    triple.update_variants_of_interest()
+    outfile = os.path.join(root_out, f"{triple_index+1}.tsv")
+    triple.write_variants_of_interest_file(outfile, vcf_records_to_mask=mask)
+    triple.clear_variant_calls()
+    logging.info(f"Finished triple {triple_index+1} of {total_triples}")
+    return triple
+
+
 class StrainTriples:
-    def __init__(self, genos, phenos, pheno_compare, max_pheno_diffs=1, top_n_genos=20):
+    def __init__(
+        self,
+        genos,
+        phenos,
+        pheno_compare,
+        max_pheno_diffs=1,
+        top_n_genos=20,
+        processes=1,
+    ):
         self.genos = genos
         self.phenos = phenos
         self.pheno_compare = pheno_compare
         self.max_pheno_diffs = max_pheno_diffs
         self.top_n_genos = top_n_genos
         self.triples = []
+        self.processes = processes
 
     def find_strain_triples(self, case_sample_names):
         # The initial use case for this was to get a sample that is resistant to
@@ -21,35 +76,25 @@ class StrainTriples:
         # In the code, use the terminology "case" to mean has the phenotype (such
         # as resistant to drug X), and "control" to mean does not have the phenotype
         # (such as sensitive to drug X).
+        wanted_names = []
 
         for sample_name in case_sample_names:
             if sample_name in self.genos.excluded_samples:
                 logging.info(f"Case '{sample_name}' excluded. Skipping")
-                continue
+            else:
+                wanted_names.append(sample_name)
 
-            logging.info(f"Looking for control samples for case sample '{sample_name}'")
-            neighbours = sample_neighbours_finding.ranked_neighbours_for_one_sample(
-                self.genos,
-                self.phenos,
-                self.pheno_compare,
-                sample_name,
-                top_n_genos=self.top_n_genos,
-                max_pheno_dist=self.max_pheno_diffs,
-            )
-
-            if len(neighbours) < 2:
-                logging.info(
-                    f"Not enough ({len(neighbours)}) controls found for case sample '{sample_name}'"
-                )
-                continue
-
-            logging.info(
-                f"Found {len(neighbours)} potential controls for case sample '{sample_name}"
-            )
-            logging.info(f"Case: {sample_name}. Control1: {neighbours[0]}")
-            logging.info(f"Case: {sample_name}. Control2: {neighbours[1]}")
-            self.triples.append(
-                strain_triple.StrainTriple(sample_name, neighbours[0], neighbours[1])
+        with multiprocessing.Pool(processes=self.processes) as pool:
+            self.triples = pool.starmap(
+                _find_controls_for_one_case,
+                zip(
+                    repeat(self.genos),
+                    repeat(self.phenos),
+                    repeat(self.pheno_compare),
+                    wanted_names,
+                    repeat(self.top_n_genos),
+                    repeat(self.max_pheno_diffs),
+                ),
             )
 
     @classmethod
@@ -152,17 +197,19 @@ class StrainTriples:
         file_per_triple_dir = outprefix + ".triples"
         os.mkdir(file_per_triple_dir)
 
-        for triple_index, triple in enumerate(self.triples):
-            logging.info(f"Processing triple {triple_index+1} of {len(self.triples)}")
-            case_vcf = self.genos.vcf_files[triple.case]
-            control1_vcf = self.genos.vcf_files[triple.control1.sample]
-            control2_vcf = self.genos.vcf_files[triple.control2.sample]
-            triple.set_variants(expect_variants)
-            triple.load_variants_from_vcf_files(case_vcf, control1_vcf, control2_vcf)
-            triple.update_variants_of_interest()
-            outfile = os.path.join(file_per_triple_dir, f"{triple_index+1}.tsv")
-            triple.write_variants_of_interest_file(outfile, vcf_records_to_mask=mask)
-            triple.clear_variant_calls()
+        with multiprocessing.Pool(processes=self.processes) as pool:
+            self.triples = pool.starmap(
+                _process_one_triple,
+                zip(
+                    self.triples,
+                    range(len(self.triples)),
+                    repeat(len(self.triples)),
+                    repeat(expect_variants),
+                    repeat(self.genos.vcf_files),
+                    repeat(mask),
+                    repeat(file_per_triple_dir),
+                ),
+            )
 
         triple_names_file = outprefix + ".triple_ids.tsv"
         logging.info(f"Writing file of triple and sample ids {triple_names_file}")

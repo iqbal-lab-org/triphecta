@@ -230,6 +230,14 @@ def main(args=None):
     subparser_triples.add_argument("out", help="Prefix of output files")
 
     subparser_triples.add_argument(
+        "--processes",
+        type=int,
+        help="Number of cases to process in parallel. More processes reduces run time but increases RAM [%(default)s]",
+        default=1,
+        metavar="INT",
+    )
+
+    subparser_triples.add_argument(
         "--var_counts_file",
         help="Variant counts file *.variant_counts.tsv.gz made by 'triphecta distance_matrix' if method was 'vcf'",
         metavar="FILENAME",
