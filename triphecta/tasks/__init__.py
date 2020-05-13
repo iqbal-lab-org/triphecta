@@ -1,5 +1,6 @@
 __all__ = [
     "distance_matrix",
+    "find_cases",
     "pheno_constraints_template",
     "tree",
     "triples",

@@ -12,9 +12,18 @@ Variant = collections.namedtuple("Variant", ["CHROM", "POS", "REF", "ALTS"])
 
 def vcf_line_to_variant_and_gt(line):
     try:
-        chrom, pos, _, ref, alt, _, filter_str, info, format_keys, format_values = line.rstrip().split(
-            "\t"
-        )
+        (
+            chrom,
+            pos,
+            _,
+            ref,
+            alt,
+            _,
+            filter_str,
+            info,
+            format_keys,
+            format_values,
+        ) = line.rstrip().split("\t")
     except:
         raise RuntimeError(f"Wrong number of columns in VCF file at this line:\n{line}")
 

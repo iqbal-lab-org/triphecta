@@ -1,11 +1,10 @@
 import filecmp
-import json
 import os
 import subprocess
 
 import pytest
 
-from triphecta import phenotypes
+from triphecta import phenotype_compare, phenotypes
 
 this_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.join(this_dir, "data", "phenotypes")
@@ -68,3 +67,46 @@ def test_write_template_constraints_json():
     expect_json = os.path.join(data_dir, "write_template_constraints_json.json")
     assert filecmp.cmp(tmp_json, expect_json, shallow=True)
     os.unlink(tmp_json)
+
+
+def test_find_matching_cases():
+    phenos = phenotypes.Phenotypes(os.path.join(data_dir, "find_matching_cases.tsv"))
+    constraints = {"pheno2": {"method": "equal", "must_be_same": True, "params": {},}}
+    pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
+    got = phenos.find_matching_cases({"pheno2": "R"}, pheno_compare)
+    assert got == ["s1"]
+    got = phenos.find_matching_cases({"pheno2": "T"}, pheno_compare)
+    assert got == ["s1"]
+    got = phenos.find_matching_cases({"pheno2": "S"}, pheno_compare)
+    assert got == ["s2", "s3"]
+
+    constraints = {"pheno3": {"method": "equal", "must_be_same": False, "params": {},}}
+    pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
+    got = phenos.find_matching_cases({"pheno3": "R"}, pheno_compare)
+    assert got == ["s1", "s2"]
+    got = phenos.find_matching_cases({"pheno3": "S"}, pheno_compare)
+    assert got == []
+
+    constraints = {
+        "pheno1": {
+            "method": "abs_distance",
+            "must_be_same": False,
+            "params": {"max_dist": 5},
+        },
+        "pheno2": {"method": "equal", "must_be_same": False, "params": {},},
+    }
+    pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
+    got = phenos.find_matching_cases({"pheno1": 1}, pheno_compare)
+    assert got == ["s1", "s2"]
+    got = phenos.find_matching_cases({"pheno1": 200}, pheno_compare)
+    assert got == ["s3"]
+    got = phenos.find_matching_cases({"pheno1": 100}, pheno_compare)
+    assert got == []
+    got = phenos.find_matching_cases({"pheno1": 100, "pheno2": "R"}, pheno_compare)
+    assert got == []
+    got = phenos.find_matching_cases({"pheno1": 1, "pheno2": "R"}, pheno_compare)
+    assert got == ["s1"]
+    got = phenos.find_matching_cases({"pheno1": 1, "pheno2": "S"}, pheno_compare)
+    assert got == ["s2"]
+    got = phenos.find_matching_cases({"pheno1": 199, "pheno2": "S"}, pheno_compare)
+    assert got == ["s3"]

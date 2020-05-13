@@ -1,6 +1,5 @@
 import logging
 import shutil
-import subprocess
 
 import dendropy
 

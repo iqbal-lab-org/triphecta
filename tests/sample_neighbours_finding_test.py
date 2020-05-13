@@ -62,7 +62,10 @@ def constraints(request):
 def test_geno_and_pheno_distances_for_one_sample(genos, phenos, constraints):
     pheno_compare = phenotype_compare.PhenotypeCompare(constraints)
 
-    got_geno_distances, got_pheno_distances = sample_neighbours_finding._geno_and_pheno_distances_for_one_sample(
+    (
+        got_geno_distances,
+        got_pheno_distances,
+    ) = sample_neighbours_finding._geno_and_pheno_distances_for_one_sample(
         genos, phenos, pheno_compare, "s1"
     )
     expect_geno_distances = {"s3": 3, "s4": 2, "s5": 1}
@@ -70,7 +73,10 @@ def test_geno_and_pheno_distances_for_one_sample(genos, phenos, constraints):
     assert got_geno_distances == expect_geno_distances
     assert got_pheno_distances == expect_pheno_distances
 
-    got_geno_distances, got_pheno_distances = sample_neighbours_finding._geno_and_pheno_distances_for_one_sample(
+    (
+        got_geno_distances,
+        got_pheno_distances,
+    ) = sample_neighbours_finding._geno_and_pheno_distances_for_one_sample(
         genos, phenos, pheno_compare, "s1", top_n_genos=3
     )
     expect_geno_distances = {"s4": 2, "s5": 1}

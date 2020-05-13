@@ -3,6 +3,8 @@ class PhenotypeCompare:
         self.compare_functions = {
             "equal": PhenotypeCompare._compare_method_equal,
             "range": PhenotypeCompare._compare_method_range,
+            "abs_distance": PhenotypeCompare._compare_method_abs_distance,
+            "percent_distance": PhenotypeCompare._compare_method_percent_distance,
         }
         self.constraints = constraints
         errors = self._sanity_check_constraints()
@@ -14,13 +16,9 @@ class PhenotypeCompare:
         }
 
     def _sanity_check_constraints(self):
-        found_must_be_same = False
         errors = []
 
         for d in self.constraints.values():
-            if d["must_be_same"]:
-                found_must_be_same = True
-
             if d["method"] not in self.compare_functions:
                 errors.append(f"Unknown method {d}")
                 continue
@@ -34,11 +32,12 @@ class PhenotypeCompare:
                 "low" not in d["params"] or "high" not in d["params"]
             ):
                 errors.append(f"method is 'range', low and high not supplied: {d}")
-
-        if not found_must_be_same:
-            errors.append(
-                f"Must have at least one constraint where 'must_be_same' is True"
-            )
+            if d["method"] == "abs_distance" and ("max_dist" not in d["params"]):
+                errors.append(f"method is 'abs_distance', max_dist not supplied: {d}")
+            if d["method"] == "percent_distance" and ("max_percent" not in d["params"]):
+                errors.append(
+                    f"method is 'percent_distance', max_percent not supplied: {d}"
+                )
 
         return errors
 
@@ -61,6 +60,16 @@ class PhenotypeCompare:
     @staticmethod
     def _compare_method_range(p1, p2, low=None, high=None):
         return (low <= p1 <= high) == (low <= p2 <= high)
+
+    @staticmethod
+    def _compare_method_abs_distance(p1, p2, max_dist=None):
+        return abs(p1 - p2) <= max_dist
+
+    @staticmethod
+    def _compare_method_percent_distance(p1, p2, max_percent=None):
+        if p1 == p2 == 0:
+            return True
+        return 100 * abs(p1 - p2) / max(abs(p1), abs(p2)) <= max_percent
 
     @classmethod
     def _phenos_equal_account_for_none(

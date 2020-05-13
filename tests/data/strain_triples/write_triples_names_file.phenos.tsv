@@ -1,0 +1,10 @@
+sample	drug1	drug2
+case1	R	1.0
+case2	R	2.0
+case3	R	3.0
+control1.1	S	1.1
+control1.2	S	1.2
+control2.1	R	2.1
+control2.2	S	2.2
+control3.1	S	3.1
+control3.2	S	3.2

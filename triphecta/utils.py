@@ -24,7 +24,7 @@ def open_file(filename, mode="r"):
                 f"Error opening gzip file '{filename}' in mode '{mode}'. Cannot continue"
             )
     elif filename.endswith(".bcf"):
-        raise NotImplementedError(f"Opening BCF files is not implemented")
+        raise NotImplementedError("Opening BCF files is not implemented")
     else:
         try:
             f = open(filename, mode)

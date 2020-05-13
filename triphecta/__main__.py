@@ -168,12 +168,46 @@ def main(args=None):
         func=triphecta.tasks.pheno_constraints_template.run
     )
 
+    # ------------------------ find_cases -------------------------------------
+    subparser_find_cases = subparsers.add_parser(
+        "find_cases",
+        help="Find cases, by looking for samples matching certain phenotypes",
+        usage="triphecta find_cases [options] <phenos.tsv> <pheno_constraints_json> <outfile>",
+        description="Find cases, by looking for samples matching certain phenotypes",
+    )
+
+    subparser_find_cases.set_defaults(func=triphecta.tasks.find_cases.run)
+
+    subparser_find_cases.add_argument(
+        "--wanted_pheno",
+        "-w",
+        help="REQUIRED. Phenotype of interest and the value. eg: 'Drug_x,Resistant'. This option can be used more than once, and must be used at least once.",
+        action="append",
+        required=True,
+        metavar="Drug,value",
+    )
+
+    subparser_find_cases.add_argument("phenos_tsv", help="Name of phenotypes TSV file")
+
+    subparser_find_cases.add_argument(
+        "pheno_constraints_json",
+        help="Name of phenotypes constraints file in JSON format",
+    )
+
+    subparser_find_cases.add_argument(
+        "outfile", help="Name of output file of sample names",
+    )
+
     # ------------------------ triples ----------------------------------------
     subparser_triples = subparsers.add_parser(
         "triples",
         help="Find strain triples and report their variants etc",
-        usage="triphecta triples [options] <vcfs_tsv> <distance_matrix> <phenos_tsv> <pheno_constraints_json> <out>",
+        usage="triphecta triples [options] <case_names_file> <vcfs_tsv> <distance_matrix> <phenos_tsv> <pheno_constraints_json> <out>",
         description="Find strain triples and report their variants etc",
+    )
+
+    subparser_triples.add_argument(
+        "case_names_file", help="Name of file of case sample names. One name per line",
     )
 
     subparser_triples.add_argument(
@@ -196,11 +230,11 @@ def main(args=None):
     subparser_triples.add_argument("out", help="Prefix of output files")
 
     subparser_triples.add_argument(
-        "--wanted_pheno",
-        help="REQUIRED. Phenotype of interest and the value. eg: 'Drug_x,Resistant'. This option can be used more than once, and must be used at least once.",
-        action="append",
-        required=True,
-        metavar="Drug,value",
+        "--processes",
+        type=int,
+        help="Number of cases to process in parallel. More processes reduces run time but increases RAM [%(default)s]",
+        default=1,
+        metavar="INT",
     )
 
     subparser_triples.add_argument(

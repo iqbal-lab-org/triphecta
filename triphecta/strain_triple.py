@@ -20,9 +20,10 @@ class StrainTriple:
 
     def load_variants_from_vcf_files(self, case_vcf, control1_vcf, control2_vcf):
         logging.info(f"Loading VCF file {case_vcf}")
-        self.variant_calls[
-            "case"
-        ], self.variants = vcf.load_variant_calls_from_vcf_file(
+        (
+            self.variant_calls["case"],
+            self.variants,
+        ) = vcf.load_variant_calls_from_vcf_file(
             case_vcf, expected_variants=self.variants
         )
         logging.info(f"Loading VCF file {control1_vcf}")

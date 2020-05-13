@@ -1,7 +1,7 @@
 {
   "drug1": {
     "method": "equal",
-    "must_be_same": true,
+    "must_be_same": false,
     "params": {}
   },
   "drug2": {

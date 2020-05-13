@@ -7,11 +7,6 @@ def test_init_in_particular_sanity_check_constraints():
     constraints = {"d1": {"must_be_same": True, "method": "equal", "params": {}}}
     phenotype_compare.PhenotypeCompare(constraints)
 
-    # Fails requirement that must be at least one where "muste_be_same" is True
-    constraints = {"d1": {"must_be_same": False, "method": "equal", "params": {}}}
-    with pytest.raises(RuntimeError):
-        phenotype_compare.PhenotypeCompare(constraints)
-
     # Uses an unknown method
     constraints = {"d1": {"must_be_same": True, "method": "WRONG", "params": {}}}
     with pytest.raises(RuntimeError):
@@ -35,6 +30,34 @@ def test_init_in_particular_sanity_check_constraints():
         phenotype_compare.PhenotypeCompare(constraints)
     constraints = {
         "d1": {"must_be_same": True, "method": "range", "params": {"low": 1, "high": 2}}
+    }
+    phenotype_compare.PhenotypeCompare(constraints)
+
+    # abs_distance should have max_dist param
+    constraints = {"d1": {"must_be_same": True, "method": "abs_distance", "params": {}}}
+    with pytest.raises(RuntimeError):
+        phenotype_compare.PhenotypeCompare(constraints)
+    constraints = {
+        "d1": {
+            "must_be_same": True,
+            "method": "abs_distance",
+            "params": {"max_dist": 1},
+        }
+    }
+    phenotype_compare.PhenotypeCompare(constraints)
+
+    # percent_distance should have max_percent param
+    constraints = {
+        "d1": {"must_be_same": True, "method": "percent_distance", "params": {}}
+    }
+    with pytest.raises(RuntimeError):
+        phenotype_compare.PhenotypeCompare(constraints)
+    constraints = {
+        "d1": {
+            "must_be_same": True,
+            "method": "percent_distance",
+            "params": {"max_percent": 42},
+        }
     }
     phenotype_compare.PhenotypeCompare(constraints)
 
@@ -126,6 +149,32 @@ def test_phenos_equal_account_for_none_using_method_range():
     assert f(None, 1.1, c, False, low=1, high=2)
     assert not f(None, 0, c, True, low=1, high=2)
     assert f(None, 0, c, False, low=1, high=2)
+
+
+def test_phenos_equal_account_for_none_using_method_abs_distance():
+    f = phenotype_compare.PhenotypeCompare._phenos_equal_account_for_none
+    c = phenotype_compare.PhenotypeCompare._compare_method_abs_distance
+    assert f(1, 1.1, c, True, max_dist=1)
+    assert f(1, 2, c, True, max_dist=1)
+    assert not f(1, 2, c, True, max_dist=0.99)
+    assert f(1, 1, c, True, max_dist=0)
+    assert not f(1, 1.0001, c, True, max_dist=0)
+    assert not f(None, 1, c, True, max_dist=1)
+    assert f(None, 1, c, False, max_dist=1)
+
+
+def test_phenos_equal_account_for_none_using_method_percent_distance():
+    f = phenotype_compare.PhenotypeCompare._phenos_equal_account_for_none
+    c = phenotype_compare.PhenotypeCompare._compare_method_percent_distance
+    assert f(90, 100, c, True, max_percent=10)
+    assert not f(90, 100, c, True, max_percent=9.9)
+    assert f(0, 0, c, True, max_percent=10)
+    assert not f(-1, 0, c, True, max_percent=10)
+    assert not f(-90, 100, c, True, max_percent=10)
+    assert f(-90, -100, c, True, max_percent=10)
+    assert not f(-90, -100, c, True, max_percent=9.99)
+    assert not f(None, 100, c, True, max_percent=10)
+    assert f(None, 100, c, False, max_percent=10)
 
 
 def test_phenos_agree_on_one_feature():
