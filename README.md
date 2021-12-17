@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/iqbal-lab-org/triphecta.svg?branch=master)](https://travis-ci.com/iqbal-lab-org/triphecta)
+![Build Status](https://github.com/iqbal-lab-org/triphecta/actions/workflows/build.yaml/badge.svg)
 
 # triphecta
 
