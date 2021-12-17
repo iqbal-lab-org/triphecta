@@ -8,7 +8,7 @@ setup(
     name="triphecta",
     version="0.0.1",
     description="Variant call adjudication",
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests"]),
     author="Martin Hunt",
     author_email="mhunt@ebi.ac.uk",
     url="https://github.com/iqbal-lab-org/triphecta",
